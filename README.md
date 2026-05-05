@@ -16,6 +16,20 @@ The ultimate cross-platform file organizer. Declutter your files and folders in 
 * **👁️ Dry Run (Simulation):** View an interactive, graphical folder tree of how your directories will look before moving a single byte.
 * **🔄 OTA Updates:** Built-in auto-update system with security verification (SHA-256 Hash).
 
+## 📸 Screenshots
+
+<p align="center">
+  <img width="50%" alt="image" src="https://github.com/user-attachments/assets/bdfd7cd6-fe08-444b-864b-1b5c6e4a2c69" />
+  <br>
+  <em>Light Theme.</em>
+</p>
+
+<p align="center">
+  <img width="50%" alt="image" src="https://github.com/user-attachments/assets/2bdced7b-4aa8-4c49-b85a-51f5ea496a18" />
+  <br>
+  <em>Dark Theme.</em>
+</p>
+
 ## 🚀 How to Use (No Installation Required)
 
 Simply download the portable executable for your operating system:
