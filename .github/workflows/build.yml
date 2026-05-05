@@ -1,9 +1,12 @@
 name: Build and Release Z-Organizer (Nuitka)
 
 on:
-  push:
-    tags:
-      - 'v*' # O fluxo só será ativado quando você criar uma Tag (ex: v1.0.0)
+  workflow_dispatch: 
+    inputs:
+      versao_tag:
+        description: 'Tag da Versão (ex: v1.0.0)'
+        required: true
+        default: 'v1.0.0'
 
 permissions:
   contents: write
@@ -41,7 +44,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y patchelf ccache gcc python3-dev
+          sudo apt-get install -y patchelf ccache gcc python3-dev zip
 
       - name: Build Windows Executable (Nuitka)
         if: matrix.os == 'windows-latest'
@@ -65,44 +68,43 @@ jobs:
           name: ${{ matrix.zip_name }}
           path: ${{ matrix.zip_name }}
 
-  release:
+  release-and-publish:
     name: Generate Hashes and Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Windows Artifact
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Z-Organizer_Windows.zip
-
-      - name: Download Linux Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Z-Organizer_Linux.zip
+          path: ./downloads
+          merge-multiple: true
 
       - name: Calculate Hashes and Update hash_v2.txt
         run: |
-          sha256sum Z-Organizer_Windows.zip > hash_v2.txt
-          sha256sum Z-Organizer_Linux.zip >> hash_v2.txt
-          # Limpa a formatação para deixar apenas os hashes puros
-          awk '{print $1}' hash_v2.txt > temp.txt && mv temp.txt hash_v2.txt
+          HASH_WIN=$(sha256sum ./downloads/Z-Organizer_Windows.zip | awk '{ print $1 }')
+          HASH_LINUX=$(sha256sum ./downloads/Z-Organizer_Linux.zip | awk '{ print $1 }')
 
-      - name: Commit and Push New Hashes to Main
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add hash_v2.txt
-          git commit -m "Auto-update hashes for release ${{ github.ref_name }}" || echo "No changes to commit"
-          git push origin main || echo "Failed to push"
+          # Salva os dois hashes no mesmo arquivo
+          echo "$HASH_WIN" > hash_v2.txt
+          echo "$HASH_LINUX" >> hash_v2.txt
+
+      - name: Salvar os Hashes direto no Repositório (Commit Automático)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Atualização automática de hashes para a versão ${{ github.event.inputs.versao_tag }}"
+          file_pattern: "hash_v2.txt"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.inputs.versao_tag }}
+          name: "Z-Organizer ${{ github.event.inputs.versao_tag }}"
           files: |
-            Z-Organizer_Windows.zip
-            Z-Organizer_Linux.zip
+            ./downloads/Z-Organizer_Windows.zip
+            ./downloads/Z-Organizer_Linux.zip
+          draft: true
