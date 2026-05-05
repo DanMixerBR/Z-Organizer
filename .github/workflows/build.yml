@@ -54,13 +54,21 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: python -m nuitka --assume-yes-for-downloads --onefile --enable-plugin=tk-inter -o Z-Organizer main.py
 
+      # --- NOVO PASSO: Gera o arquivo version.txt ---
+      # A tag 'shell: bash' garante que o arquivo seja salvo em UTF-8 puro em ambos os sistemas
+      - name: Criar arquivo version.txt
+        shell: bash
+        run: echo "${{ github.event.inputs.versao_tag }}" > version.txt
+
+     # --- COMPRESSÃO MÁXIMA: Usando 7-Zip no Windows (-mx=9) ---
       - name: Zip Artifact (Windows)
         if: matrix.os == 'windows-latest'
-        run: Compress-Archive -Path Z-Organizer.exe -DestinationPath ${{ matrix.zip_name }}
+        run: 7z a -tzip -mx=9 ${{ matrix.zip_name }} Z-Organizer.exe version.txt
 
+      # --- COMPRESSÃO MÁXIMA: Usando zip no Linux (-9) ---
       - name: Zip Artifact (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: zip -j ${{ matrix.zip_name }} Z-Organizer
+        run: zip -9 -j ${{ matrix.zip_name }} Z-Organizer version.txt
 
       - name: Upload Artifacts to Pipeline
         uses: actions/upload-artifact@v4
@@ -97,7 +105,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "🤖 Atualização automática de hashes para a versão ${{ github.event.inputs.versao_tag }}"
-          file_pattern: "hash_v2.txt"
+          file_pattern: "hash.txt"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
