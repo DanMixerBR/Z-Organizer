@@ -48,7 +48,7 @@ jobs:
 
       - name: Build Windows Executable (Nuitka)
         if: matrix.os == 'windows-latest'
-        run: python -m nuitka --assume-yes-for-downloads --onefile --enable-plugin=tk-inter --company-name="DanMixerBR" --product-name="Z-Organizer" --file-version=1.0.0.0 --product-version=1.0.0.0 --copyright="MIT License" --output-filename=Z-Organizer.exe main.py
+        run: python -m nuitka --assume-yes-for-downloads --onefile --windows-console-mode=disable --enable-plugin=tk-inter --company-name="DanMixerBR" --product-name="Z-Organizer" --file-version=1.0.0.0 --product-version=1.0.0.0 --copyright="MIT License" --output-filename=Z-Organizer.exe main.py
 
       - name: Build Linux Executable (Nuitka)
         if: matrix.os == 'ubuntu-latest'
