@@ -1,0 +1,108 @@
+name: Build and Release Z-Organizer (Nuitka)
+
+on:
+  push:
+    tags:
+      - 'v*' # O fluxo só será ativado quando você criar uma Tag (ex: v1.0.0)
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Executables
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: Z-Organizer.exe
+            zip_name: Z-Organizer_Windows.zip
+          - os: ubuntu-latest
+            artifact_name: Z-Organizer
+            zip_name: Z-Organizer_Linux.zip
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install Nuitka==2.1.6
+
+      - name: Install System Dependencies (Linux Only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf ccache gcc python3-dev
+
+      - name: Build Windows Executable (Nuitka)
+        if: matrix.os == 'windows-latest'
+        run: python -m nuitka --assume-yes-for-downloads --onefile --windows-console-mode=disable --enable-plugin=tk-inter --company-name="DanMixerBR" --product-name="Z-Organizer" --file-version=1.0.0.0 --product-version=1.0.0.0 --copyright="MIT License" --output-filename=Z-Organizer.exe main.py
+
+      - name: Build Linux Executable (Nuitka)
+        if: matrix.os == 'ubuntu-latest'
+        run: python -m nuitka --assume-yes-for-downloads --onefile --enable-plugin=tk-inter -o Z-Organizer main.py
+
+      - name: Zip Artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        run: Compress-Archive -Path Z-Organizer.exe -DestinationPath ${{ matrix.zip_name }}
+
+      - name: Zip Artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: zip -j ${{ matrix.zip_name }} Z-Organizer
+
+      - name: Upload Artifacts to Pipeline
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.zip_name }}
+          path: ${{ matrix.zip_name }}
+
+  release:
+    name: Generate Hashes and Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Z-Organizer_Windows.zip
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Z-Organizer_Linux.zip
+
+      - name: Calculate Hashes and Update hash_v2.txt
+        run: |
+          sha256sum Z-Organizer_Windows.zip > hash_v2.txt
+          sha256sum Z-Organizer_Linux.zip >> hash_v2.txt
+          # Limpa a formatação para deixar apenas os hashes puros
+          awk '{print $1}' hash_v2.txt > temp.txt && mv temp.txt hash_v2.txt
+
+      - name: Commit and Push New Hashes to Main
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add hash_v2.txt
+          git commit -m "Auto-update hashes for release ${{ github.ref_name }}" || echo "No changes to commit"
+          git push origin main || echo "Failed to push"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Z-Organizer_Windows.zip
+            Z-Organizer_Linux.zip
