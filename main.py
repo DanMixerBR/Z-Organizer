@@ -147,7 +147,12 @@ class FileOrganizerApp(ctk.CTk):
 
         self.build_ui()
         self.update_texts() 
-
+        
+        if not self.is_windows:
+            # Em vez de 120 (força do Windows), usamos 1 (força do Linux)
+            self.bind_all("<Button-4>", lambda e: e.widget.event_generate("<MouseWheel>", delta=1))
+            self.bind_all("<Button-5>", lambda e: e.widget.event_generate("<MouseWheel>", delta=-1))
+        
     # ==========================================
     # UTILITÁRIOS BASE E CARREGAMENTO
     # ==========================================
