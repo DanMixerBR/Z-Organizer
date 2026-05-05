@@ -4,7 +4,7 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.12-blue.svg)
 
-**Z-Organizer** is a smart, cross-platform file manager developed in Python. It helps you declutter and organize messy files and folders in seconds, using an advanced hybrid rule engine and automated classification.
+The ultimate cross-platform file organizer. Declutter your files and folders in seconds with smart rules, hybrid conditions, and automated classification.
 
 ## ✨ Features
 
