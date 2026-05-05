@@ -1,4 +1,4 @@
-name: Build and Release Z-Organizer (Nuitka)
+name: Build Z-Organizer
 
 on:
   workflow_dispatch: 
