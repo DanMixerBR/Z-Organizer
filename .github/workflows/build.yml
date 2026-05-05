@@ -38,7 +38,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install Nuitka==2.1.6
+          pip install Nuitka
 
       - name: Install System Dependencies (Linux Only)
         if: matrix.os == 'ubuntu-latest'
