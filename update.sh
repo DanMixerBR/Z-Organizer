@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Updating the Z-Organizer..."
+echo "Updating Z-Organizer..."
 sleep 3
 
 unzip -o Z-Organizer_Linux.zip
