@@ -8,9 +8,10 @@ import zipfile
 import threading
 import webbrowser
 import requests
+import stat
 from datetime import datetime
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox
 
 import customtkinter as ctk
 from PIL import Image
@@ -18,14 +19,14 @@ from PIL import Image
 # ==========================================
 # ESQUEMA DE CORES DINÂMICAS (Light, Dark)
 # ==========================================
-BG_APP = ("#E5E7EB", "#141414")        # Cinza Carvão profundo (foge do azulado do CopynDown e do preto puro)
-BG_FRAME = ("#FFFFFF", "#1f1f1f")      # Painéis em um cinza neutro e elegante
-BG_INPUT = ("#D1D5DB", "#2e2e2e")      # Botões e inputs demarcados 
-COLOR_BORDER = ("#9CA3AF", "#404040")  # Bordas mais nítidas e neutras
+BG_APP = ("#E5E7EB", "#141414")        
+BG_FRAME = ("#FFFFFF", "#1f1f1f")      
+BG_INPUT = ("#D1D5DB", "#2e2e2e")      
+COLOR_BORDER = ("#9CA3AF", "#404040")  
 TEXT_MAIN = ("#111827", "#e0e0e0")
-TEXT_MUTED = ("#6B7280", "#8a8a8a")    # Cinza mais neutro para textos secundários
+TEXT_MUTED = ("#6B7280", "#8a8a8a")    
 ORANGE_MAIN = ("#d35400", "#d35400")   
-ORANGE_HOVER = ("#e67e22", "#e67e22")
+ORANGE_HOVER = ("#e67e22", "#e67e22")  
 
 # ==========================================
 # DICIONÁRIO DE TRADUÇÕES (LOCALIZATION)
@@ -35,71 +36,79 @@ LANGS = {
         "title": "Z-Organizer", "sub": "Smart File Management", "settings": "⚙ Settings", "about": "ℹ About",
         "s1": "1. Select Folder to Organize", "browse": "Browse", "ph_src": "Choose the messy folder...",
         "s2": "2. Automatic Classification (Check to enable)",
-        "t_type": "Type (Videos, Music...)", "t_date": "Creation Date", "t_size": "Size (<10MB...)", "t_name": "Name (A-Z)", 
+        "t_type": "Type (Videos, Music...)", "t_date_c": "Creation Date", "t_date_m": "Modified Date", "t_size": "Size (Small, Med...)", "t_name": "Name (A-Z)", 
         "s3": "3. Define Organization Rules (Optional)", "add_rule": "+ Add Rule",
         "btn_run": "▶ Organize", "btn_sim": "Simulate (Dry Run)", "btn_undo": "Undo Last", "btn_dupes": "Find Dupes",
         
-        # Regras (Name Contains movido para o topo)
         "r_name": "Name Contains", "r_ext": "Extension is", "r_ext_not": "Extension is NOT", 
         "r_size_gt": "Size > (MB)", "r_size_lt": "Size < (MB)", 
-        "r_date": "Created before (YYYY-MM-DD)", "r_date_after": "Created after (YYYY-MM-DD)",
+        "r_date_c": "Created before (YYYY-MM-DD)", "r_date_c_after": "Created after (YYYY-MM-DD)",
+        "r_date_m": "Modified before (YYYY-MM-DD)", "r_date_m_after": "Modified after (YYYY-MM-DD)",
         "folder": "➡ Folder:", "ph_dest": "e.g. Docs",
         
         "ph_name": "e.g. report", "ph_ext": "e.g. .mp4", "ph_size": "e.g. 500", "ph_date": "e.g. 2024-01-01",
         
         "msg_success": "Organization complete! Moved {} files.", 
-        "msg_sim": "Simulation Complete. Check the log window.",
         "msg_dupes": "Duplicate scan complete! Moved {} duplicates.", 
         "msg_undo": "Undo successful! Restored {} files.",
         
-        "desc": "The ultimate cross-platform file organizer. Declutter your folders in seconds with smart rules, hybrid conditions, and automated classification.",
-        "btn_update": "Check for updates"
+        "desc": "The ultimate cross-platform file organizer. Declutter your files and folders in seconds with smart rules, hybrid conditions, and automated classification.",
+        "btn_update": "Check for updates",
+        
+        "load_title": "Processing...", "load_org": "Organizing your files...\nPlease wait.", "load_dupes": "Scanning for duplicates...\nThis may take a while.",
+        "load_sim": "Simulating organization...\nPlease wait.", "load_undo": "Restoring files...\nPlease wait."
     },
     "pt": {
         "title": "Z-Organizer", "sub": "Gerenciamento Inteligente de Arquivos", "settings": "⚙ Config.", "about": "ℹ Sobre",
         "s1": "1. Selecione a Pasta", "browse": "Procurar", "ph_src": "Escolha a pasta bagunçada...",
         "s2": "2. Classificação Automática (Marque para ativar)",
-        "t_type": "Tipo (Vídeos, Músicas...)", "t_date": "Data de Criação", "t_size": "Tamanho (<10MB...)", "t_name": "Nome (A-Z)", 
+        "t_type": "Tipo (Vídeos, Músicas...)", "t_date_c": "Data de Criação", "t_date_m": "Data de Modificação", "t_size": "Tamanho (P, M, G)", "t_name": "Nome (A-Z)", 
         "s3": "3. Definir Regras (Opcional)", "add_rule": "+ Adicionar",
         "btn_run": "▶ Organizar", "btn_sim": "Simular", "btn_undo": "Desfazer", "btn_dupes": "Duplicatas",
         
         "r_name": "Nome contém", "r_ext": "Extensão é", "r_ext_not": "Extensão NÃO é", 
         "r_size_gt": "Tamanho > (MB)", "r_size_lt": "Tamanho < (MB)", 
-        "r_date": "Criado antes de (AAAA-MM-DD)", "r_date_after": "Criado depois de (AAAA-MM-DD)",
+        "r_date_c": "Criado antes de (AAAA-MM-DD)", "r_date_c_after": "Criado depois de (AAAA-MM-DD)",
+        "r_date_m": "Modificado antes de (AAAA-MM-DD)", "r_date_m_after": "Modificado depois de (AAAA-MM-DD)",
         "folder": "➡ Pasta:", "ph_dest": "ex: Documentos",
         
         "ph_name": "ex: relatorio", "ph_ext": "ex: .mp4", "ph_size": "ex: 500", "ph_date": "ex: 2024-01-01",
         
         "msg_success": "Organização concluída! {} arquivos movidos.", 
-        "msg_sim": "Simulação concluída. Veja a janela de log.",
         "msg_dupes": "Busca concluída! {} duplicatas isoladas.", 
         "msg_undo": "Desfeito com sucesso! {} arquivos restaurados.",
         
-        "desc": "O organizador de arquivos multiplataforma definitivo. Organize suas pastas em segundos com regras inteligentes, condições híbridas e classificação automática.",
-        "btn_update": "Verificar atualizações"
+        "desc": "O organizador de arquivos multiplataforma definitivo. Organize seus arquivos e pastas em segundos com regras inteligentes, condições híbridas e classificação automática.",
+        "btn_update": "Verificar atualizações",
+        
+        "load_title": "Processando...", "load_org": "Organizando seus arquivos...\nPor favor, aguarde.", "load_dupes": "Procurando duplicatas...\nIsso pode demorar um pouco.",
+        "load_sim": "Simulando organização...\nPor favor, aguarde.", "load_undo": "Restaurando arquivos...\nPor favor, aguarde."
     },
     "es": {
         "title": "Z-Organizer", "sub": "Gestión Inteligente de Archivos", "settings": "⚙ Ajustes", "about": "ℹ Acerca de",
         "s1": "1. Seleccione la Carpeta", "browse": "Buscar", "ph_src": "Elija la carpeta desordenada...",
         "s2": "2. Clasificación Automática (Marcar para activar)",
-        "t_type": "Tipo (Videos, Música...)", "t_date": "Fecha de Creación", "t_size": "Tamaño (<10MB...)", "t_name": "Nombre (A-Z)", 
+        "t_type": "Tipo (Videos, Música...)", "t_date_c": "Fecha de Creación", "t_date_m": "Fecha de Modificación", "t_size": "Tamaño (P, M, G)", "t_name": "Nombre (A-Z)", 
         "s3": "3. Definir Reglas (Opcional)", "add_rule": "+ Añadir Regla",
         "btn_run": "▶ Organizar", "btn_sim": "Simular", "btn_undo": "Deshacer", "btn_dupes": "Duplicados",
         
         "r_name": "Nombre contiene", "r_ext": "Extensión es", "r_ext_not": "Extensión NO es", 
         "r_size_gt": "Tamaño > (MB)", "r_size_lt": "Tamaño < (MB)", 
-        "r_date": "Creado antes de (AAAA-MM-DD)", "r_date_after": "Creado después de (AAAA-MM-DD)",
+        "r_date_c": "Creado antes de (AAAA-MM-DD)", "r_date_c_after": "Creado después de (AAAA-MM-DD)",
+        "r_date_m": "Modificado antes de (AAAA-MM-DD)", "r_date_m_after": "Modificado después de (AAAA-MM-DD)",
         "folder": "➡ Carpeta:", "ph_dest": "ej: Documentos",
         
         "ph_name": "ej: reporte", "ph_ext": "ej: .mp4", "ph_size": "ej: 500", "ph_date": "ej: 2024-01-01",
         
         "msg_success": "¡Organización completa! {} archivos movidos.", 
-        "msg_sim": "Simulación completa. Revise la ventana de registro.",
         "msg_dupes": "¡Búsqueda completa! {} duplicados aislados.", 
         "msg_undo": "¡Deshecho con éxito! {} archivos restaurados.",
         
-        "desc": "El organizador de archivos multiplataforma definitivo. Organiza tus carpetas en segundos con reglas inteligentes, condiciones híbridas y clasificación automática.",
-        "btn_update": "Buscar actualizaciones"
+        "desc": "El organizador de archivos multiplataforma definitivo. Organiza tus archivos y carpetas en segundos con reglas inteligentes, condiciones híbridas y clasificación automática.",
+        "btn_update": "Buscar actualizaciones",
+        
+        "load_title": "Procesando...", "load_org": "Organizando sus archivos...\nPor favor, espere.", "load_dupes": "Buscando duplicados...\nEsto puede tardar un poco.",
+        "load_sim": "Simulando organización...\nPor favor, espere.", "load_undo": "Restaurando archivos...\nPor favor, espere."
     }
 }
 
@@ -115,12 +124,13 @@ class FileOrganizerApp(ctk.CTk):
         
         self.version = self.get_local_version()
         self.is_updating = False
+        self.loading_window = None 
         
         self.load_config()
         ctk.set_appearance_mode(self.current_theme)
 
         self.title("Z-Organizer")
-        self.geometry("900x780")
+        self.center_window(self, 850, 700)
         self.resizable(False, False)
         self.configure(fg_color=BG_APP)
         self.is_windows = os.name == 'nt'
@@ -130,61 +140,101 @@ class FileOrganizerApp(ctk.CTk):
         self.MAX_RULES = 10
 
         self.chk_type_var = ctk.BooleanVar(value=False)
-        self.chk_date_var = ctk.BooleanVar(value=False)
+        self.chk_date_c_var = ctk.BooleanVar(value=False)
+        self.chk_date_m_var = ctk.BooleanVar(value=False)
         self.chk_size_var = ctk.BooleanVar(value=False)
         self.chk_name_var = ctk.BooleanVar(value=False)
 
         self.build_ui()
         self.update_texts() 
 
-    # Permite atualizar a UI através de Threads secundárias sem travar o Tkinter
+    # ==========================================
+    # UTILITÁRIOS BASE E CARREGAMENTO
+    # ==========================================
+    def center_window(self, win, width, height):
+        win.update_idletasks()
+        x = int((win.winfo_screenwidth() / 2) - (width / 2))
+        y = int((win.winfo_screenheight() / 2) - (height / 2))
+        win.geometry(f"{width}x{height}+{x}+{y}")
+    
+    def apply_modal_fix(self, modal_win):
+        def on_unmap(e):
+            if e.widget is self and modal_win.winfo_exists():
+                modal_win.grab_release()
+
+        def on_map(e):
+            if e.widget is self and modal_win.winfo_exists():
+                modal_win.grab_set()
+
+        self.bind("<Unmap>", on_unmap, add="+")
+        self.bind("<Map>", on_map, add="+")
+    
     def safe_ui(self, func, *args, **kwargs):
         if self.winfo_exists():
             self.after(0, lambda: func(*args, **kwargs))
+
+    def show_loading(self, title_key, message_key):
+        t = LANGS[self.current_lang]
+        self.loading_window = ctk.CTkToplevel(self)
+        self.loading_window.title(t[title_key])
+        self.center_window(self.loading_window, 350, 150)
+        self.loading_window.resizable(False, False)
+        self.loading_window.configure(fg_color=BG_APP)
+        
+        self.loading_window.update_idletasks()
+        self.loading_window.transient(self)
+        self.loading_window.grab_set()
+        self.apply_modal_fix(self.loading_window)
+
+        lbl = ctk.CTkLabel(self.loading_window, text=t[message_key], font=("Segoe UI", 14), text_color=TEXT_MAIN)
+        lbl.pack(pady=(30, 15))
+        
+        pb = ctk.CTkProgressBar(self.loading_window, mode="indeterminate", progress_color=ORANGE_MAIN, fg_color=BG_INPUT)
+        pb.pack(fill="x", padx=40)
+        pb.start()
+
+    def hide_loading(self):
+        """Nova blindagem anti-crash: Retira a janela da tela imediatamente, deleta da memória depois."""
+        win = self.loading_window
+        self.loading_window = None
+        if win and win.winfo_exists():
+            win.grab_release()
+            win.withdraw() # Faz a janela sumir instantaneamente para liberar a interface
+            self.after(500, lambda: win.destroy() if win.winfo_exists() else None) # Deleta com segurança no fundo
 
     def get_local_version(self):
         if os.path.exists(self.version_file):
             try:
                 with open(self.version_file, "r", encoding='utf-8') as f: 
                     return f.read().strip()
-            except Exception as e: print(f"Failed to read version.txt: {e}")
+            except: pass
         return "Unknown"
 
     def build_ui(self):
-        # 0. TÍTULO E BOTÕES
         title_frame = ctk.CTkFrame(self, fg_color="transparent")
         title_frame.pack(fill="x", padx=30, pady=(20, 0))
         
-        # --- NOVO: LÓGICA DA LOGO ---
-        # Ele vai procurar um arquivo chamado "logo.png" na mesma pasta do seu script
-        base_dir = os.path.dirname(os.path.abspath(__file__))
+        base_dir = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
         logo_path = os.path.join(base_dir, "logo.png")
         
         if os.path.exists(logo_path):
             try:
                 img_data = Image.open(logo_path)
-                # Define o tamanho da logo (32x32 pixels é um bom padrão)
                 self.logo_img = ctk.CTkImage(light_image=img_data, dark_image=img_data, size=(32, 32))
-                
-                # Adiciona a imagem na tela, grudada à esquerda, com 10px de margem do título
                 ctk.CTkLabel(title_frame, image=self.logo_img, text="").pack(side="left", padx=(0, 10))
-            except Exception as e:
-                print(f"Erro ao carregar a logo: {e}")
-        # -----------------------------
-        
+            except: pass
+
         self.lbl_title = ctk.CTkLabel(title_frame, text="", font=("Segoe UI", 26, "bold"), text_color=ORANGE_MAIN)
         self.lbl_title.pack(side="left")
         self.lbl_sub = ctk.CTkLabel(title_frame, text="", font=("Segoe UI", 12), text_color=TEXT_MUTED)
         self.lbl_sub.pack(side="left", padx=(10, 0), pady=(10, 0))
 
-        # Botões Settings e About
         self.btn_settings = ctk.CTkButton(title_frame, text="", width=100, height=35, corner_radius=10, fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=self.show_settings)
         self.btn_settings.pack(side="right")
-
+        
         self.btn_about = ctk.CTkButton(title_frame, text="", width=100, height=35, corner_radius=10, fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=self.show_about)
         self.btn_about.pack(side="right", padx=(0, 10))
 
-        # 1. CABEÇALHO 
         top_frame = ctk.CTkFrame(self, fg_color=BG_FRAME, corner_radius=15)
         top_frame.pack(fill="x", padx=30, pady=(20, 15))
         
@@ -200,7 +250,6 @@ class FileOrganizerApp(ctk.CTk):
         self.btn_browse = ctk.CTkButton(src_inner_frame, text="", width=80, height=38, fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=self.browse_source)
         self.btn_browse.pack(side="right")
 
-        # 2. OPÇÕES DE AUTO-CLASSIFICAÇÃO
         auto_frame = ctk.CTkFrame(self, fg_color=BG_FRAME, corner_radius=15)
         auto_frame.pack(fill="x", padx=30, pady=(0, 15))
         
@@ -213,15 +262,20 @@ class FileOrganizerApp(ctk.CTk):
         chk_style = {"fg_color": ORANGE_MAIN, "hover_color": ORANGE_HOVER, "border_color": COLOR_BORDER, "text_color": TEXT_MAIN}
 
         self.chk_type = ctk.CTkCheckBox(chk_inner_frame, text="", variable=self.chk_type_var, **chk_style)
-        self.chk_type.pack(side="left", padx=(0, 20))
-        self.chk_date = ctk.CTkCheckBox(chk_inner_frame, text="", variable=self.chk_date_var, **chk_style)
-        self.chk_date.pack(side="left", padx=(0, 20))
-        self.chk_size = ctk.CTkCheckBox(chk_inner_frame, text="", variable=self.chk_size_var, **chk_style)
-        self.chk_size.pack(side="left", padx=(0, 20))
-        self.chk_name = ctk.CTkCheckBox(chk_inner_frame, text="", variable=self.chk_name_var, **chk_style)
-        self.chk_name.pack(side="left")
+        self.chk_type.grid(row=0, column=0, sticky="w", padx=(0, 20), pady=5)
+        
+        self.chk_date_c = ctk.CTkCheckBox(chk_inner_frame, text="", variable=self.chk_date_c_var, **chk_style)
+        self.chk_date_c.grid(row=0, column=1, sticky="w", padx=(0, 20), pady=5)
+        
+        self.chk_date_m = ctk.CTkCheckBox(chk_inner_frame, text="", variable=self.chk_date_m_var, **chk_style)
+        self.chk_date_m.grid(row=0, column=2, sticky="w", padx=(0, 20), pady=5)
 
-        # 3. ÁREA DE REGRAS DINÂMICAS 
+        self.chk_size = ctk.CTkCheckBox(chk_inner_frame, text="", variable=self.chk_size_var, **chk_style)
+        self.chk_size.grid(row=1, column=0, sticky="w", padx=(0, 20), pady=5)
+        
+        self.chk_name = ctk.CTkCheckBox(chk_inner_frame, text="", variable=self.chk_name_var, **chk_style)
+        self.chk_name.grid(row=1, column=1, sticky="w", padx=(0, 20), pady=5)
+
         self.rules_scroll = ctk.CTkScrollableFrame(self, fg_color=BG_FRAME, corner_radius=15)
         self.rules_scroll.pack(fill="both", expand=True, padx=30, pady=(0, 15))
 
@@ -237,25 +291,21 @@ class FileOrganizerApp(ctk.CTk):
         self.rules_container = ctk.CTkFrame(self.rules_scroll, fg_color="transparent")
         self.rules_container.pack(fill="both", expand=True)
 
-        # 4. RODAPÉ 
         bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
         bottom_frame.pack(fill="x", padx=30, pady=(0, 20))
         
-        self.btn_dupes = ctk.CTkButton(bottom_frame, text="", height=45, fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=self.find_duplicates)
+        self.btn_dupes = ctk.CTkButton(bottom_frame, text="", height=45, fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=self.start_find_duplicates)
         self.btn_dupes.pack(side="left", padx=(0, 10))
 
-        self.btn_undo = ctk.CTkButton(bottom_frame, text="", height=45, fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=self.undo_last_action)
+        self.btn_undo = ctk.CTkButton(bottom_frame, text="", height=45, fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=self.start_undo_last_action)
         self.btn_undo.pack(side="left")
 
-        self.btn_run = ctk.CTkButton(bottom_frame, text="", width=160, height=45, corner_radius=10, font=("Segoe UI", 14, "bold"), fg_color=ORANGE_MAIN, hover_color=ORANGE_HOVER, command=lambda: self.execute_rules(simulate=False))
+        self.btn_run = ctk.CTkButton(bottom_frame, text="", width=160, height=45, corner_radius=10, font=("Segoe UI", 14, "bold"), fg_color=ORANGE_MAIN, hover_color=ORANGE_HOVER, command=lambda: self.start_execute_rules(simulate=False))
         self.btn_run.pack(side="right")
 
-        self.btn_sim = ctk.CTkButton(bottom_frame, text="", width=120, height=45, corner_radius=10, font=("Segoe UI", 14), fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=lambda: self.execute_rules(simulate=True))
+        self.btn_sim = ctk.CTkButton(bottom_frame, text="", width=120, height=45, corner_radius=10, font=("Segoe UI", 14), fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, command=lambda: self.start_execute_rules(simulate=True))
         self.btn_sim.pack(side="right", padx=(0, 10))
 
-    # ==========================================
-    # SISTEMA DE IDIOMAS
-    # ==========================================
     def update_texts(self):
         t = LANGS[self.current_lang]
         self.lbl_title.configure(text=t["title"])
@@ -269,7 +319,8 @@ class FileOrganizerApp(ctk.CTk):
         
         self.lbl_s2.configure(text=t["s2"])
         self.chk_type.configure(text=t["t_type"])
-        self.chk_date.configure(text=t["t_date"])
+        self.chk_date_c.configure(text=t["t_date_c"])
+        self.chk_date_m.configure(text=t["t_date_m"])
         self.chk_size.configure(text=t["t_size"])
         self.chk_name.configure(text=t["t_name"])
         
@@ -291,12 +342,12 @@ class FileOrganizerApp(ctk.CTk):
 
     def get_rule_options(self):
         t = LANGS[self.current_lang]
-        # Ordem atualizada: Name Contains no topo
         return {
             "name": t["r_name"],
             "ext": t["r_ext"], "ext_not": t["r_ext_not"], 
             "size_gt": t["r_size_gt"], "size_lt": t["r_size_lt"], 
-            "date": t["r_date"], "date_after": t["r_date_after"]
+            "date_c": t["r_date_c"], "date_c_after": t["r_date_c_after"],
+            "date_m": t["r_date_m"], "date_m_after": t["r_date_m_after"]
         }
 
     def set_placeholder_by_key(self, key, entry_widget):
@@ -304,20 +355,17 @@ class FileOrganizerApp(ctk.CTk):
         if key == "name": entry_widget.configure(placeholder_text=t["ph_name"])
         elif key in ["ext", "ext_not"]: entry_widget.configure(placeholder_text=t["ph_ext"])
         elif key in ["size_gt", "size_lt"]: entry_widget.configure(placeholder_text=t["ph_size"])
-        elif key in ["date", "date_after"]: entry_widget.configure(placeholder_text=t["ph_date"])
+        elif "date" in key: entry_widget.configure(placeholder_text=t["ph_date"])
 
-    # ==========================================
-    # JANELA DE CONFIGURAÇÕES E ABOUT
-    # ==========================================
     def show_settings(self):
         set_win = ctk.CTkToplevel(self)
         set_win.title(LANGS[self.current_lang]["settings"])
-        set_win.geometry("400x300")
+        self.center_window(set_win, 400, 300)
         set_win.resizable(False, False)
         set_win.configure(fg_color=BG_APP)
-        
-        set_win.update_idletasks()
-        set_win.after(100, set_win.grab_set) 
+        set_win.transient(self)
+        set_win.after(100, lambda: set_win.grab_set() if set_win.winfo_exists() else None)
+        self.apply_modal_fix(set_win)
 
         ctk.CTkLabel(set_win, text=LANGS[self.current_lang]["settings"], font=("Segoe UI", 18, "bold"), text_color=TEXT_MAIN).pack(pady=20)
 
@@ -346,7 +394,6 @@ class FileOrganizerApp(ctk.CTk):
             
             with open(self.config_file, "w") as f:
                 json.dump({"lang": self.current_lang, "theme": self.current_theme}, f)
-                
             set_win.destroy()
 
         ctk.CTkButton(set_win, text="Save", fg_color=ORANGE_MAIN, hover_color=ORANGE_HOVER, command=save_settings).pack(pady=30)
@@ -354,13 +401,12 @@ class FileOrganizerApp(ctk.CTk):
     def show_about(self):
         self.about_win = ctk.CTkToplevel(self)
         self.about_win.title(LANGS[self.current_lang].get("about", "About"))
-        self.about_win.geometry("640x500")
+        self.center_window(self.about_win, 640, 500)
         self.about_win.resizable(False, False)
         self.about_win.configure(fg_color=BG_APP)
         self.about_win.transient(self)
-        
-        self.about_win.update_idletasks()
-        self.about_win.after(100, self.about_win.grab_set)
+        self.about_win.after(100, lambda: self.about_win.grab_set() if self.about_win.winfo_exists() else None)
+        self.apply_modal_fix(self.about_win)
 
         scroll_frame = ctk.CTkScrollableFrame(self.about_win, width=580, height=350, fg_color="transparent")
         scroll_frame.pack(padx=20, pady=10, fill="both", expand=True)
@@ -372,29 +418,24 @@ class FileOrganizerApp(ctk.CTk):
         desc_text = LANGS[self.current_lang].get("desc")
         ctk.CTkLabel(scroll_frame, text=desc_text, font=("Segoe UI", 13), text_color=TEXT_MAIN, justify="left", wraplength=550).pack(anchor="w", pady=10)
 
-        # Área de Status da Atualização (Inspirada no CopynDown)
         self.update_status_lbl = ctk.CTkLabel(scroll_frame, text="", font=("Segoe UI", 12), text_color=TEXT_MUTED)
         self.update_status_lbl.pack(anchor="w", pady=(20, 5))
         
         self.update_progress = ctk.CTkProgressBar(scroll_frame, height=6, progress_color=ORANGE_MAIN, fg_color=BG_INPUT)
         self.update_progress.set(0)
         self.update_progress.pack(fill="x", pady=(0, 10))
-        self.update_progress.pack_forget() # Esconde até o usuário clicar
+        self.update_progress.pack_forget() 
 
         btn_frame = ctk.CTkFrame(self.about_win, fg_color="transparent")
         btn_frame.pack(pady=15)
 
-        ctk.CTkButton(btn_frame, text="GitHub", fg_color=BG_FRAME, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, width=120, command=lambda: webbrowser.open_new("https://github.com/DanMixerBR/Z-Organizer")).pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="GitHub", fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=COLOR_BORDER, width=120, command=lambda: webbrowser.open_new("https://github.com/DanMixerBR/Z-Organizer")).pack(side="left", padx=10)
         self.btn_update_app = ctk.CTkButton(btn_frame, text=LANGS[self.current_lang].get("btn_update", "Check for updates"), width=150, command=self.start_github_update, fg_color=ORANGE_MAIN, hover_color=ORANGE_HOVER)
         self.btn_update_app.pack(side="left", padx=10)
 
-    # ==========================================
-    # MOTOR DE ATUALIZAÇÃO VIA GITHUB
-    # ==========================================
     def status_update_error(self, filename=None, custom_msg=None):
         f_name = filename if filename else "Update File"
         error_msg = custom_msg if custom_msg else f"ERROR: The file '{f_name}' appears corrupted."
-        
         self.safe_ui(self.update_status_lbl.configure, text="Update Aborted!", text_color="#a94442")
         self.safe_ui(self.update_progress.configure, progress_color="#a94442")
         parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
@@ -403,11 +444,9 @@ class FileOrganizerApp(ctk.CTk):
     def start_github_update(self):
         self.btn_update_app.configure(state="disabled", text="Checking...")
         self.is_updating = True 
-        
         self.update_progress.pack(fill="x", pady=(0, 10))
         self.update_progress.set(0)
         self.update_status_lbl.configure(text="Checking for updates...", text_color=TEXT_MAIN)
-        
         threading.Thread(target=self.perform_github_update, daemon=True).start()
 
     def perform_github_update(self):
@@ -424,14 +463,11 @@ class FileOrganizerApp(ctk.CTk):
             local_v = self.get_local_version()
             response = requests.get(api_url, timeout=10)
             remote_v = response.json().get('tag_name', 'v0.0')
-            
-            # Limpa o "v" da string, se houver
             clean_remote_v = ''.join(filter(lambda x: x.isdigit() or x == '.', remote_v))
             
             if clean_remote_v != local_v and local_v != "Unknown":
                 msg = f"Current version: {local_v}\nLatest version: {clean_remote_v}\n\nDo you want to update?"
                 parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
-                
                 if not messagebox.askyesno("Update available", msg, parent=parent_win):
                     self.is_updating = False
                     self.safe_ui(self.update_status_lbl.configure, text="Update cancelled.")
@@ -447,18 +483,14 @@ class FileOrganizerApp(ctk.CTk):
                 self.safe_ui(self.update_status_lbl.configure, text="Downloading update file... 25%", text_color=TEXT_MAIN)
                 self.safe_ui(self.update_progress.set, 0.25)
                 
-                if self.is_windows: 
-                    r = requests.get(download_url_windows, timeout=30)
-                else:
-                    r = requests.get(download_url_linux, timeout=30)
+                if self.is_windows: r = requests.get(download_url_windows, timeout=30)
+                else: r = requests.get(download_url_linux, timeout=30)
                 with open(zip_path, 'wb') as f: f.write(r.content)
                 
                 self.safe_ui(self.update_status_lbl.configure, text="Verifying file structure... 50%")
                 self.safe_ui(self.update_progress.set, 0.5)
                 
-                with zipfile.ZipFile(zip_path, 'r') as zf:
-                    corrupt_file = zf.testzip()
-                
+                with zipfile.ZipFile(zip_path, 'r') as zf: corrupt_file = zf.testzip()
                 if corrupt_file is not None:
                     if os.path.exists(zip_path): os.remove(zip_path)
                     raise Exception("ERROR: File structure is corrupted.")
@@ -466,15 +498,10 @@ class FileOrganizerApp(ctk.CTk):
                 self.safe_ui(self.update_status_lbl.configure, text="Verifying hash... 60%")
                 r_hash = requests.get(hash_url, timeout=10)
                 if r_hash.status_code == 200:
-                    expected_hashes = [
-                        line.strip().lower().replace("sha256:", "") 
-                        for line in r_hash.text.splitlines() if line.strip()
-                    ]
-                    
+                    expected_hashes = [line.strip().lower().replace("sha256:", "") for line in r_hash.text.splitlines() if line.strip()]
                     sha256_hash = hashlib.sha256()
                     with open(zip_path, "rb") as f:
-                        for byte_block in iter(lambda: f.read(4096), b""): 
-                            sha256_hash.update(byte_block)
+                        for byte_block in iter(lambda: f.read(4096), b""): sha256_hash.update(byte_block)
                             
                     if sha256_hash.hexdigest().lower() not in expected_hashes:
                         if os.path.exists(zip_path): os.remove(zip_path)
@@ -486,8 +513,7 @@ class FileOrganizerApp(ctk.CTk):
                 r_script = requests.get(script_url, timeout=10)
                 if r_script.status_code == 200:
                     with open(script_path, 'wb') as f: f.write(r_script.content)
-                else: 
-                    raise Exception(f"Could not download update.{script_ext}")
+                else: raise Exception(f"Could not download update.{script_ext}")
                 
                 self.safe_ui(self.update_status_lbl.configure, text="Update Ready! (100%)", text_color=ORANGE_MAIN[0])
                 self.safe_ui(self.update_progress.set, 1)
@@ -503,13 +529,8 @@ class FileOrganizerApp(ctk.CTk):
                         limpo_env = os.environ.copy()
                         limpo_env.pop("LD_LIBRARY_PATH", None)
                         limpo_env.pop("GTK_PATH", None)
-                        
                         comando_bash = f'cd "{dir_app}" && bash update.sh'
-                        terminais = [
-                            ['x-terminal-emulator', '-e'], ['gnome-terminal', '--'],
-                            ['konsole', '-e'], ['xfce4-terminal', '-x']
-                        ]
-                        
+                        terminais = [['x-terminal-emulator', '-e'], ['gnome-terminal', '--'], ['konsole', '-e'], ['xfce4-terminal', '-x']]
                         abriu_terminal = False
                         for term in terminais:
                             try:
@@ -517,10 +538,8 @@ class FileOrganizerApp(ctk.CTk):
                                 abriu_terminal = True
                                 break
                             except Exception: continue
-                                
                         if not abriu_terminal:
                             subprocess.Popen(['bash', script_path], env=limpo_env, start_new_session=True)
-                            
                     os._exit(0)
             else:
                 self.is_updating = False
@@ -550,24 +569,18 @@ class FileOrganizerApp(ctk.CTk):
                     self.current_theme = cfg.get("theme", "Light")
             except: pass
 
-    # ==========================================
-    # DIÁLOGO NATIVO DE PASTAS E REGRAS
-    # ==========================================
     def native_askdirectory(self, title="Choose Directory"):
-        if self.is_windows:
-            return filedialog.askdirectory(parent=self, title=title)
+        if self.is_windows: return filedialog.askdirectory(parent=self, title=title)
         try:
             res = subprocess.run(['zenity', '--file-selection', '--directory', f'--title={title}'], capture_output=True, text=True)
             if res.returncode == 0: return res.stdout.strip()
             return "" 
         except FileNotFoundError: pass
-        
         try:
             res = subprocess.run(['kdialog', '--getexistingdirectory', '/', '--title', title], capture_output=True, text=True)
             if res.returncode == 0: return res.stdout.strip()
             return "" 
         except FileNotFoundError: pass
-        
         return filedialog.askdirectory(parent=self, title=title)
 
     def browse_source(self):
@@ -582,12 +595,7 @@ class FileOrganizerApp(ctk.CTk):
         
         t = LANGS[self.current_lang]
         opts = self.get_rule_options()
-        
-        rule_dict = {
-            "frame": rule_frame, 
-            "current_key": "name", # Chave inicial é Name Contains
-        }
-        
+        rule_dict = {"frame": rule_frame, "current_key": "name"}
         attr_var = ctk.StringVar(value=opts["name"])
 
         def on_option_change(choice):
@@ -618,169 +626,350 @@ class FileOrganizerApp(ctk.CTk):
         self.rules.append(rule_dict)
 
     # ==========================================
-    # CAÇADOR DE DUPLICATAS 
+    # FORÇA BRUTA: Módulo de Permissões
     # ==========================================
-    def find_duplicates(self):
+    def force_move(self, src, dst):
+        try: os.chmod(src, stat.S_IWRITE)
+        except: pass
+        shutil.move(src, dst)
+
+    def _force_rmdir(self, dir_path):
+        try:
+            if not os.listdir(dir_path): 
+                os.chmod(dir_path, stat.S_IWRITE) 
+                os.rmdir(dir_path) 
+        except: pass
+
+    def remove_empty_folders(self, path):
+        if not os.path.exists(path): return
+        for root, dirs, files in os.walk(path, topdown=False):
+            for dir_name in dirs:
+                self._force_rmdir(os.path.join(root, dir_name))
+        self._force_rmdir(path)
+
+    def snapshot_dirs(self, src):
+        dir_set = set()
+        for root, dirs, files in os.walk(src):
+            for d in dirs: dir_set.add(os.path.join(root, d))
+        return dir_set
+
+    # ==========================================
+    # PREVENÇÃO DE COLISÃO DE ARQUIVOS 
+    # ==========================================
+    def get_unique_path(self, dest_folder, filename, original_filepath):
+        base, ext = os.path.splitext(filename)
+        counter = 1
+        new_path = os.path.join(dest_folder, filename)
+        
+        if original_filepath == new_path:
+            return new_path
+            
+        while os.path.exists(new_path):
+            new_path = os.path.join(dest_folder, f"{base} ({counter}){ext}")
+            counter += 1
+            
+        return new_path
+
+    # ==========================================
+    # PROCESSAMENTO EM BACKGROUND (MULTI-THREADING)
+    # ==========================================
+    def start_find_duplicates(self):
         src = self.source_folder.get()
         if not os.path.exists(src): return
-        
-        files = [f for f in os.listdir(src) if os.path.isfile(os.path.join(src, f))]
+        self.show_loading("load_title", "load_dupes")
+        threading.Thread(target=self._task_find_duplicates, args=(src,), daemon=True).start()
+
+    def _task_find_duplicates(self, src):
         hashes = {}
         dupes_folder = os.path.join(src, "Duplicates")
         moved = 0
         
-        for file in files:
-            filepath = os.path.join(src, file)
-            file_hash = hashlib.md5()
-            with open(filepath, "rb") as f:
-                for chunk in iter(lambda: f.read(4096), b""):
-                    file_hash.update(chunk)
-            h = file_hash.hexdigest()
-            
-            if h in hashes:
-                if not os.path.exists(dupes_folder): os.makedirs(dupes_folder)
-                try:
-                    shutil.move(filepath, os.path.join(dupes_folder, file))
-                    moved += 1
-                except: pass
-            else:
-                hashes[h] = filepath
-                
-        messagebox.showinfo("Duplicatas", LANGS[self.current_lang]["msg_dupes"].format(moved))
+        try:
+            for root, _, files in os.walk(src):
+                if root.startswith(dupes_folder): continue
+                for file in files:
+                    filepath = os.path.join(root, file)
+                    file_hash = hashlib.md5()
+                    try:
+                        with open(filepath, "rb") as f:
+                            for chunk in iter(lambda: f.read(4096), b""): file_hash.update(chunk)
+                        h = file_hash.hexdigest()
+                        
+                        if h in hashes:
+                            if not os.path.exists(dupes_folder): os.makedirs(dupes_folder)
+                            
+                            safe_path = self.get_unique_path(dupes_folder, file, filepath)
+                            self.force_move(filepath, safe_path)
+                            moved += 1
+                        else: hashes[h] = filepath
+                    except: pass
+        finally:
+            self.safe_ui(self.hide_loading)
+            self.safe_ui(lambda: self.after(200, lambda: messagebox.showinfo("Duplicatas", LANGS[self.current_lang]["msg_dupes"].format(moved))))
 
-    # ==========================================
-    # SISTEMA DE DESFAZER (UNDO)
-    # ==========================================
-    def log_move(self, original_path, new_path):
-        log_data = {}
-        if os.path.exists(self.undo_file):
-            try:
-                with open(self.undo_file, "r") as f: log_data = json.load(f)
-            except: pass
-        log_data[new_path] = original_path
-        with open(self.undo_file, "w") as f: json.dump(log_data, f)
-
-    def undo_last_action(self):
+    def start_undo_last_action(self):
         if not os.path.exists(self.undo_file): return
-        
-        with open(self.undo_file, "r") as f: log_data = json.load(f)
-        
-        restored = 0
-        for current_pos, original_pos in log_data.items():
-            if os.path.exists(current_pos):
-                try:
-                    shutil.move(current_pos, original_pos)
-                    restored += 1
-                except: pass
-                
-        os.remove(self.undo_file)
-        messagebox.showinfo("Undo", LANGS[self.current_lang]["msg_undo"].format(restored))
+        self.show_loading("load_title", "load_undo")
+        threading.Thread(target=self._task_undo_last_action, daemon=True).start()
 
-    # ==========================================
-    # MOTOR DE CLASSIFICAÇÃO E SIMULAÇÃO
-    # ==========================================
-    def execute_rules(self, simulate=False):
+    def _task_undo_last_action(self):
+        try:
+            with open(self.undo_file, "r") as f: log_data = json.load(f)
+            
+            moves = log_data.get("moves", log_data) 
+            created_dirs = log_data.get("created_dirs", [])
+            deleted_dirs = log_data.get("deleted_dirs", [])
+            
+            restored = 0
+            
+            for d in deleted_dirs:
+                try: os.makedirs(d, exist_ok=True)
+                except: pass
+
+            for current_pos, original_pos in moves.items():
+                if os.path.exists(current_pos):
+                    try:
+                        original_dir = os.path.dirname(original_pos)
+                        os.makedirs(original_dir, exist_ok=True)
+                        self.force_move(current_pos, original_pos)
+                        restored += 1
+                    except: pass
+
+            created_dirs.sort(key=len, reverse=True)
+            for d in created_dirs: self.remove_empty_folders(d)
+
+            os.remove(self.undo_file)
+        finally:
+            self.safe_ui(self.hide_loading)
+            self.safe_ui(lambda: self.after(200, lambda: messagebox.showinfo("Undo", LANGS[self.current_lang]["msg_undo"].format(restored))))
+
+    def start_execute_rules(self, simulate=False):
         src = self.source_folder.get()
         if not os.path.exists(src): return
-
-        t = LANGS[self.current_lang]
         
+        has_rules = any(r["val"].get().strip() and r["dest"].get().strip() for r in self.rules)
+        has_auto = any([self.chk_type_var.get(), self.chk_date_c_var.get(), self.chk_date_m_var.get(), self.chk_size_var.get(), self.chk_name_var.get()])
+        
+        if not has_rules and not has_auto:
+            t = LANGS[self.current_lang]
+            messagebox.showwarning("Warning", "Please select at least one automatic classification option or define a rule.")
+            return
+
+        if simulate: self.show_loading("load_title", "load_sim")
+        else: self.show_loading("load_title", "load_org")
+            
+        threading.Thread(target=self._task_execute_rules, args=(src, simulate), daemon=True).start()
+
+    def _task_execute_rules(self, src, simulate):
+        t = LANGS[self.current_lang]
         active_rules = []
+        
         for r in self.rules:
             val = r["val"].get().strip()
             folder_name = r["dest"].get().strip()
-            
             if val and folder_name:
                 clean_folder = "".join(c for c in folder_name if c not in r'\/:*?"<>|')
                 if clean_folder: active_rules.append({"key": r["current_key"], "val": val, "dest": clean_folder})
 
-        has_auto = any([self.chk_type_var.get(), self.chk_date_var.get(), self.chk_size_var.get(), self.chk_name_var.get()])
-        if not active_rules and not has_auto: return
+        # =================================================================
+        # NOVO MOTOR DE PRIORIDADE INTELIGENTE (Sugestão do Danilo)
+        # =================================================================
+        # Mapeia o peso de cada regra: 1 (Mais forte) a 4 (Mais fraco)
+        priority_map = {
+            "name": 1,
+            "ext": 2, "ext_not": 2,
+            "size_gt": 3, "size_lt": 3,
+            "date_c": 4, "date_c_after": 4,
+            "date_m": 4, "date_m_after": 4
+        }
+        
+        # O Python reordena as regras ativas silenciosamente baseado na prioridade.
+        # Ele mantém a ordem visual da tela para regras que tenham a mesma prioridade.
+        active_rules.sort(key=lambda rule: priority_map.get(rule["key"], 99))
+        # =================================================================
 
-        files = [f for f in os.listdir(src) if os.path.isfile(os.path.join(src, f))]
+        has_auto = any([self.chk_type_var.get(), self.chk_date_c_var.get(), self.chk_date_m_var.get(), self.chk_size_var.get(), self.chk_name_var.get()])
+        
+        if not active_rules and not has_auto:
+            self.safe_ui(self.hide_loading)
+            return
+
+        files_to_process = []
+        for root, dirs, files in os.walk(src):
+            for file in files: files_to_process.append(os.path.join(root, file))
+
         moved_count = 0
-        sim_log = [] 
+        sim_moves = [] 
+        moves_dict = {}
 
         if not simulate and os.path.exists(self.undo_file): os.remove(self.undo_file)
+        dirs_before = self.snapshot_dirs(src) if not simulate else set()
 
-        for file in files:
-            filepath = os.path.join(src, file)
-            rule_matched = False
-            
-            for rule in active_rules:
-                match = False
-                ext = os.path.splitext(file)[1].lower()
+        try:
+            for filepath in files_to_process:
+                if not os.path.exists(filepath): continue
                 
-                if rule["key"] == "ext" and ext == rule["val"].lower(): match = True
-                elif rule["key"] == "ext_not" and ext != rule["val"].lower(): match = True
-                elif rule["key"] == "name" and rule["val"].lower() in file.lower(): match = True
-                elif rule["key"] == "size_gt":
-                    try:
-                        if (os.path.getsize(filepath) / (1024 * 1024)) > float(rule["val"]): match = True
-                    except: pass
-                elif rule["key"] == "size_lt":
-                    try:
-                        if (os.path.getsize(filepath) / (1024 * 1024)) < float(rule["val"]): match = True
-                    except: pass
-                elif rule["key"] == "date":
-                    try:
-                        if self.get_creation_date(filepath) < rule["val"]: match = True
-                    except: pass
-                elif rule["key"] == "date_after":  
-                    try:
-                        if self.get_creation_date(filepath) > rule["val"]: match = True
-                    except: pass
-
-                if match:
-                    dest_folder = os.path.join(src, rule["dest"])
-                    new_path = os.path.join(dest_folder, file)
+                file = os.path.basename(filepath)
+                rule_matched = False
+                
+                for rule in active_rules:
+                    match = False
+                    ext = os.path.splitext(file)[1].lower()
                     
-                    if simulate:
-                        sim_log.append(f"RULE -> '{file}' will move to '{rule['dest']}'")
-                    else:
-                        if not os.path.exists(dest_folder): os.makedirs(dest_folder)
+                    if rule["key"] == "ext" and ext == rule["val"].lower(): match = True
+                    elif rule["key"] == "ext_not" and ext != rule["val"].lower(): match = True
+                    elif rule["key"] == "name" and rule["val"].lower() in file.lower(): match = True
+                    elif rule["key"] == "size_gt":
                         try:
-                            shutil.move(filepath, new_path)
-                            self.log_move(filepath, new_path)
-                            moved_count += 1
+                            if (os.path.getsize(filepath) / (1024 * 1024)) > float(rule["val"]): match = True
                         except: pass
-                    rule_matched = True
-                    break 
-            
-            if rule_matched: continue 
+                    elif rule["key"] == "size_lt":
+                        try:
+                            if (os.path.getsize(filepath) / (1024 * 1024)) < float(rule["val"]): match = True
+                        except: pass
+                    elif rule["key"] == "date_c":
+                        try:
+                            if self.get_creation_date(filepath) < rule["val"]: match = True
+                        except: pass
+                    elif rule["key"] == "date_c_after":  
+                        try:
+                            if self.get_creation_date(filepath) > rule["val"]: match = True
+                        except: pass
+                    elif rule["key"] == "date_m":
+                        try:
+                            if self.get_modification_date(filepath) < rule["val"]: match = True
+                        except: pass
+                    elif rule["key"] == "date_m_after":  
+                        try:
+                            if self.get_modification_date(filepath) > rule["val"]: match = True
+                        except: pass
 
-            if has_auto:
-                sub_paths = []
-                if self.chk_type_var.get(): sub_paths.append(self.get_file_type(file))
-                if self.chk_date_var.get(): sub_paths.append(self.get_creation_date(filepath))
-                if self.chk_size_var.get(): sub_paths.append(self.get_size_category(filepath))
-                if self.chk_name_var.get(): sub_paths.append(self.get_name_category(file))
-
-                target_path = os.path.join(src, *sub_paths)
-                new_path = os.path.join(target_path, file)
+                    if match:
+                        dest_folder = os.path.join(src, rule["dest"])
+                        safe_new_path = self.get_unique_path(dest_folder, file, filepath)
+                        
+                        if simulate: sim_moves.append((file, safe_new_path))
+                        else:
+                            if filepath != safe_new_path: 
+                                if not os.path.exists(dest_folder): os.makedirs(dest_folder)
+                                try:
+                                    self.force_move(filepath, safe_new_path)
+                                    moves_dict[safe_new_path] = filepath
+                                    moved_count += 1
+                                except: pass
+                        rule_matched = True
+                        break 
                 
-                if simulate:
-                    sim_log.append(f"AUTO -> '{file}' will move to '{'/'.join(sub_paths)}'")
-                else:
-                    if not os.path.exists(target_path): os.makedirs(target_path)
-                    try:
-                        shutil.move(filepath, new_path)
-                        self.log_move(filepath, new_path)
-                        moved_count += 1
-                    except: pass
+                if rule_matched: continue 
 
-        if simulate:
-            sim_win = ctk.CTkToplevel(self)
-            sim_win.title("Dry Run (Simulation)")
-            sim_win.geometry("600x400")
-            sim_win.configure(fg_color=BG_APP)
-            txt = ctk.CTkTextbox(sim_win, fg_color=BG_INPUT, text_color=TEXT_MAIN)
-            txt.pack(fill="both", expand=True, padx=10, pady=10)
-            txt.insert("0.0", "--- SIMULATION RESULTS ---\n\n" + "\n".join(sim_log) if sim_log else "No files matched.")
-            txt.configure(state="disabled")
-            messagebox.showinfo("Simulation", t["msg_sim"])
-        else:
-            messagebox.showinfo("Success", t["msg_success"].format(moved_count))
+                if has_auto:
+                    sub_paths = []
+                    if self.chk_type_var.get(): sub_paths.append(self.get_file_type(file))
+                    if self.chk_date_c_var.get(): sub_paths.append(self.get_creation_date(filepath))
+                    if self.chk_date_m_var.get(): sub_paths.append(self.get_modification_date(filepath))
+                    if self.chk_size_var.get(): sub_paths.append(self.get_size_category(filepath))
+                    if self.chk_name_var.get(): sub_paths.append(self.get_name_category(file))
+
+                    target_path = os.path.join(src, *sub_paths)
+                    safe_new_path = self.get_unique_path(target_path, file, filepath)
+                    
+                    if simulate: sim_moves.append((file, safe_new_path))
+                    else:
+                        if filepath != safe_new_path:
+                            if not os.path.exists(target_path): os.makedirs(target_path)
+                            try:
+                                self.force_move(filepath, safe_new_path)
+                                moves_dict[safe_new_path] = filepath
+                                moved_count += 1
+                            except: pass
+
+            if simulate:
+                self.safe_ui(self._generate_tree_and_finish, src, sim_moves)
+            else:
+                self.remove_empty_folders(src)
+                dirs_after = self.snapshot_dirs(src)
+                
+                created_dirs = list(dirs_after - dirs_before)
+                deleted_dirs = list(dirs_before - dirs_after)
+                
+                log_data = {"moves": moves_dict, "created_dirs": created_dirs, "deleted_dirs": deleted_dirs}
+                with open(self.undo_file, "w") as f: json.dump(log_data, f)
+                    
+                self.safe_ui(self.hide_loading)
+                self.safe_ui(lambda: self.after(200, lambda: messagebox.showinfo("Success", t["msg_success"].format(moved_count))))
+                
+        except Exception as e:
+            self.safe_ui(self.hide_loading)
+            print(f"Erro Crítico: {e}")
+
+    def _generate_tree_and_finish(self, src, sim_moves):
+        self.hide_loading()
+        self.after(200, lambda: self._show_simulation_tree(src, sim_moves))
+
+    # ==========================================
+    # ÁRVORE GRÁFICA USANDO TTK.TREEVIEW (ALTO DESEMPENHO)
+    # ==========================================
+    def _show_simulation_tree(self, root_src, sim_moves):
+        t = LANGS[self.current_lang]
+        sim_win = ctk.CTkToplevel(self)
+        sim_win.title(t["btn_sim"])
+        self.center_window(sim_win, 650, 500)
+        sim_win.configure(fg_color=BG_APP)
+        sim_win.transient(self) 
+        sim_win.after(100, lambda: sim_win.grab_set() if sim_win.winfo_exists() else None)
+        self.apply_modal_fix(sim_win)
+        
+        ctk.CTkLabel(sim_win, text="Preview of Organized Folders", font=("Segoe UI", 18, "bold"), text_color=TEXT_MAIN).pack(pady=(15, 5))
+        
+        container = ctk.CTkFrame(sim_win, fg_color=BG_FRAME, corner_radius=10)
+        container.pack(fill="both", expand=True, padx=20, pady=(10, 20))
+        
+        if not sim_moves:
+            ctk.CTkLabel(container, text="No files matched the current rules.", text_color=TEXT_MUTED).pack(pady=20)
+            return
+
+        style = ttk.Style(sim_win)
+        style.theme_use("default")
+
+        bg_color = BG_FRAME[1] if self.current_theme == "Dark" else BG_FRAME[0]
+        text_color = TEXT_MAIN[1] if self.current_theme == "Dark" else TEXT_MAIN[0]
+        select_bg = BG_INPUT[1] if self.current_theme == "Dark" else BG_INPUT[0]
+
+        style.configure("Custom.Treeview", background=bg_color, foreground=text_color, fieldbackground=bg_color, borderwidth=0, font=("Segoe UI", 12))
+        style.map("Custom.Treeview", background=[("selected", select_bg)], foreground=[("selected", ORANGE_MAIN[0])]) 
+        style.layout("Custom.Treeview", [('Custom.Treeview.treearea', {'sticky': 'nswe'})])
+
+        tree_widget = ttk.Treeview(container, style="Custom.Treeview", show="tree", selectmode="browse")
+        
+        scrollbar = ctk.CTkScrollbar(container, command=tree_widget.yview, fg_color="transparent", button_color=COLOR_BORDER)
+        tree_widget.configure(yscrollcommand=scrollbar.set)
+        
+        scrollbar.pack(side="right", fill="y", pady=5)
+        tree_widget.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+
+        tree = {}
+        for original_file, dest_path in sim_moves:
+            rel_path = os.path.relpath(dest_path, root_src).replace('\\', '/')
+            parts = rel_path.split('/')
+            
+            current_level = tree
+            for part in parts[:-1]:
+                if part not in current_level: current_level[part] = {}
+                current_level = current_level[part]
+            current_level[parts[-1]] = None
+
+        def populate_tree(parent_id, node):
+            folders = {k: v for k, v in node.items() if v is not None}
+            files = {k: v for k, v in node.items() if v is None}
+
+            for f_name, sub_node in sorted(folders.items()):
+                folder_id = tree_widget.insert(parent_id, "end", text=f"📁 {f_name}", open=False)
+                populate_tree(folder_id, sub_node)
+
+            for file_name in sorted(files.keys()):
+                tree_widget.insert(parent_id, "end", text=f"📄 {file_name}")
+
+        populate_tree("", tree)
 
     def get_file_type(self, filename):
         ext = os.path.splitext(filename)[1].lower()
@@ -794,16 +983,19 @@ class FileOrganizerApp(ctk.CTk):
 
     def get_creation_date(self, filepath):
         try: return datetime.fromtimestamp(os.stat(filepath).st_birthtime).strftime('%Y-%m-%d')
-        except: return datetime.fromtimestamp(os.stat(filepath).st_mtime).strftime('%Y-%m-%d')
+        except: return datetime.fromtimestamp(os.stat(filepath).st_ctime).strftime('%Y-%m-%d')
+        
+    def get_modification_date(self, filepath):
+        return datetime.fromtimestamp(os.stat(filepath).st_mtime).strftime('%Y-%m-%d')
 
     def get_name_category(self, filename):
         return filename[0].upper() if filename[0].isalpha() else "#" 
 
     def get_size_category(self, filepath):
         mb = os.path.getsize(filepath) / (1024 * 1024)
-        if mb < 10: return "<10MB"
-        if mb <= 100: return "10MB-100MB"
-        return ">100MB"
+        if mb < 10: return "Small (Under 10MB)"
+        if mb <= 100: return "Medium (10MB-100MB)"
+        return "Large (Over 100MB)"
 
 if __name__ == "__main__":
     app = FileOrganizerApp()
