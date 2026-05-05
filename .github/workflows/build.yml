@@ -38,7 +38,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install Nuitka
+          pip install zstandard Nuitka
 
       - name: Install System Dependencies (Linux Only)
         if: matrix.os == 'ubuntu-latest'
@@ -90,8 +90,8 @@ jobs:
           HASH_LINUX=$(sha256sum ./downloads/Z-Organizer_Linux.zip | awk '{ print $1 }')
 
           # Salva os dois hashes no mesmo arquivo
-          echo "$HASH_WIN" > hash_v2.txt
-          echo "$HASH_LINUX" >> hash_v2.txt
+          echo "$HASH_WIN" > hash.txt
+          echo "$HASH_LINUX" >> hash.txt
 
       - name: Salvar os Hashes direto no Repositório (Commit Automático)
         uses: stefanzweifel/git-auto-commit-action@v5
