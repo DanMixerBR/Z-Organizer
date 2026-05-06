@@ -605,15 +605,9 @@ class FileOrganizerApp(ctk.CTk):
                         subprocess.Popen(['cmd.exe', '/c', script_path], creationflags=0x00000010)
                     else:
                         os.chmod(script_path, 0o755) 
-                        
                         limpo_env = os.environ.copy()
-                        # --- LINUX FIX: Clean GTK and PyInstaller Ghost Variables ---
                         limpo_env.pop("LD_LIBRARY_PATH", None)
                         limpo_env.pop("GTK_PATH", None)
-                        limpo_env.pop("_MEIPASS2", None)
-                        limpo_env.pop("_PYI_ZLIB_FILE", None)
-                        # ------------------------------------------------------------
-                        
                         comando_bash = f'cd "{dir_app}" && bash update.sh'
                         terminais = [['x-terminal-emulator', '-e'], ['gnome-terminal', '--'], ['konsole', '-e'], ['xfce4-terminal', '-x']]
                         abriu_terminal = False
