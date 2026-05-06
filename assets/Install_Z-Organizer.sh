@@ -35,4 +35,7 @@ echo "================================================="
 echo " Success! Shortcut added to Application Menu"
 echo " AND copied to your Desktop."
 echo "================================================="
+
+nohup ./Z-Organizer >/dev/null 2>&1 &
+
 sleep 4
