@@ -1,14 +1,15 @@
 <div align="center">
   <img src="assets/logo_z.png" alt="CopynDown Logo" width="150">
   <h1>Z-Organizer</h1>
+  <p>
+    <a href="https://github.com/DanMixerBR/Z-Organizer/releases/latest"><img src="https://img.shields.io/badge/version-1.0.0-orange.svg?style=for-the-badge"></a>
+    <a href="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-orange.svg"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-orange.svg?style=for-the-badge"></a>
+    <a href="https://www.python.org/downloads/release/python-3120/"><img src="https://img.shields.io/badge/Python-3.12-orange.svg?style=for-the-badge&logo=python&logoColor=white"></a>
+    <a href="DONATE.md"><img src="https://img.shields.io/badge/Donate-Support_Z_Organizer-orange?style=for-the-badge&logo=githubsponsors&logoColor=red"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge"></a>
+  </p>
   <p>The ultimate cross-platform file organizer. Declutter your files and folders in seconds with smart rules, hybrid conditions, and automated classification.</p>
   <p><b>Developed with 💻 by DanMixerBR</b></p>
-<p>
-
-![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-blue.svg)
-![Python](https://img.shields.io/badge/python-3.12-blue.svg)
-  </p>
 </div>
 
 
