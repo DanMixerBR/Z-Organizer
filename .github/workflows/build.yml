@@ -83,8 +83,8 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           cp assets/icon.png bin/
-          cp assets/Install_Z-Organizer.sh bin/
-          zip -9 -r ${{ matrix.zip_name }} Z-Organizer bin
+          cp assets/Install_Z-Organizer.sh ./
+          zip -9 -r ${{ matrix.zip_name }} Z-Organizer Install_Z-Organizer.sh bin
 
       - name: Upload Artifacts to Pipeline
         uses: actions/upload-artifact@v4
