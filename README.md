@@ -5,6 +5,7 @@
     <a href="https://github.com/DanMixerBR/Z-Organizer/releases/latest"><img src="https://img.shields.io/badge/version-1.0.0-orange.svg?style=for-the-badge"></a>
     <a href="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-orange.svg"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-orange.svg?style=for-the-badge"></a>
     <a href="https://www.python.org/downloads/release/python-3120/"><img src="https://img.shields.io/badge/Python-3.12-orange.svg?style=for-the-badge&logo=python&logoColor=white"></a>
+    <br>
     <a href="DONATE.md"><img src="https://img.shields.io/badge/Donate-Support_Z_Organizer-orange?style=for-the-badge&logo=githubsponsors&logoColor=red"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge"></a>
   </p>
