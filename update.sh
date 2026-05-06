@@ -42,5 +42,8 @@ echo ""
 
 sleep 3
 
+# Auto-start da aplicação
+./Z-Organizer &
+
 # Self-deletion
 rm -- "$0"
