@@ -50,14 +50,14 @@ jobs:
       - name: Build Windows Executable (PyInstaller)
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --noconfirm --onefile --windowed --icon="assets/icon.ico" --name "Z-Organizer" main.py
+          pyinstaller --noconfirm --onefile --hidden-import="PIL._tkinter_finder" --windowed --icon="assets/icon.ico" --name "Z-Organizer" main.py
           Move-Item -Path dist\Z-Organizer.exe -Destination Z-Organizer.exe
 
       # --- NOVO: Compilação Linux (PyInstaller com Ícone) ---
       - name: Build Linux Executable (PyInstaller)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          pyinstaller --noconfirm --onefile --icon="assets/icon.png" --name "Z-Organizer" main.py
+          pyinstaller --noconfirm --onefile --hidden-import="PIL._tkinter_finder" --icon="assets/icon.png" --name "Z-Organizer" main.py
           mv dist/Z-Organizer Z-Organizer
 
       # A tag 'shell: bash' garante o funcionamento igual em ambos os SOs
