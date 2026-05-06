@@ -31,9 +31,6 @@ echo.
 
 timeout /t 3 >nul
 
-:: Inicia o app recém atualizado
-start "" "Z-Organizer.exe"
-
 :: Self-deletion logic to keep the workspace clean
 start /b "" cmd /c "timeout /t 1 >nul & del /f /q "%~f0""
 exit
