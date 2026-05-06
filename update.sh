@@ -36,28 +36,9 @@ rm -f Z-Organizer_Linux.zip
 echo ""
 echo -e "${G}-------------------------------------------------------${W}"
 echo "  [SUCCESS] Update completed!"
-echo "  Starting Z-Organizer..."
+echo "  Please restart the app."
 echo -e "${G}-------------------------------------------------------${W}"
 echo ""
-
-# ======================================================================
-# THE FINAL FIX: Exorcising PyInstaller Ghost Variables inside Bash
-# ======================================================================
-unset _MEIPASS2
-unset _MEIPASS
-unset _PYI_ZLIB_FILE
-
-# O PyInstaller sequestra o LD_LIBRARY_PATH. Precisamos restaurar o original!
-if [ -n "$LD_LIBRARY_PATH_ORIG" ]; then
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH_ORIG"
-    unset LD_LIBRARY_PATH_ORIG
-else
-    unset LD_LIBRARY_PATH
-fi
-# ======================================================================
-
-nohup ./Z-Organizer >/dev/null 2>&1 &
-disown
 
 sleep 3
 
