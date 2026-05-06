@@ -1,6 +1,6 @@
-# ❤️ Support CopynDown
+# ❤️ Support Z-Organizer
 
-If **CopynDown** has helped you save time or made your workflow easier, consider supporting its continuous development! 
+If **Z-Organizer** has helped you save time or made your workflow easier, consider supporting its continuous development! 
 
 Your support helps me dedicate more time to adding new features, fixing bugs, and keeping the project alive.
 
