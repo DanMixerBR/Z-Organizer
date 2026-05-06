@@ -40,10 +40,10 @@ echo "  Starting Z-Organizer..."
 echo -e "${G}-------------------------------------------------------${W}"
 echo ""
 
-sleep 3
+nohup ./Z-Organizer >/dev/null 2>&1 &
+disown
 
-# Auto-start da aplicação
-./Z-Organizer &
+sleep 3
 
 # Self-deletion
 rm -- "$0"
