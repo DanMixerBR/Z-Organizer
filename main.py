@@ -30,6 +30,14 @@ ORANGE_MAIN = ("#d35400", "#d35400")
 ORANGE_HOVER = ("#e67e22", "#e67e22")  
 
 # ==========================================
+# GLOBAL PATH FIX (LINUX/WINDOWS)
+# ==========================================
+if getattr(sys, 'frozen', False):
+    base_dir = os.path.dirname(os.path.realpath(sys.executable))
+else:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# ==========================================
 # EXTENSÕES (SETS)
 # ==========================================
 
@@ -180,9 +188,9 @@ class FileOrganizerApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.config_file = "bin/z_config.json"
-        self.undo_file = "bin/z_undo_log.json"
-        self.version_file = "bin/version.txt"
+        self.config_file = os.path.join(base_dir, "bin", "z_config.json")
+        self.undo_file = os.path.join(base_dir, "bin", "z_undo_log.json")
+        self.version_file = os.path.join(base_dir, "bin", "version.txt")
         self.current_lang = "en"
         self.current_theme = "Light"
         
@@ -281,7 +289,6 @@ class FileOrganizerApp(ctk.CTk):
         title_frame = ctk.CTkFrame(self, fg_color="transparent")
         title_frame.pack(fill="x", padx=30, pady=(20, 0))
         
-        base_dir = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
         logo_path = os.path.join(base_dir, "bin", "logo.png")
         
         if os.path.exists(logo_path):
@@ -641,17 +648,29 @@ class FileOrganizerApp(ctk.CTk):
             except: pass
 
     def native_askdirectory(self, title="Choose Directory"):
-        if self.is_windows: return filedialog.askdirectory(parent=self, title=title)
+        if self.is_windows: 
+            return filedialog.askdirectory(parent=self, title=title)
+            
+        # LINUX FIX: Clean PyInstaller's toxic environment variables so system dialogs don't crash
+        clean_env = os.environ.copy()
+        clean_env.pop("LD_LIBRARY_PATH", None)
+        clean_env.pop("GTK_PATH", None)
+        
+        # Linux - Attempt 1: Zenity (GNOME/Fedora/Ubuntu)
         try:
-            res = subprocess.run(['zenity', '--file-selection', '--directory', f'--title={title}'], capture_output=True, text=True)
+            res = subprocess.run(['zenity', '--file-selection', '--directory', f'--title={title}'], capture_output=True, text=True, env=clean_env)
             if res.returncode == 0: return res.stdout.strip()
-            return "" 
+            if res.returncode == 1: return "" # User clicked Cancel
         except FileNotFoundError: pass
+        
+        # Linux - Attempt 2: kdialog (KDE Plasma)
         try:
-            res = subprocess.run(['kdialog', '--getexistingdirectory', '/', '--title', title], capture_output=True, text=True)
+            res = subprocess.run(['kdialog', '--getexistingdirectory', '/', '--title', title], capture_output=True, text=True, env=clean_env)
             if res.returncode == 0: return res.stdout.strip()
-            return "" 
+            if res.returncode == 1: return "" 
         except FileNotFoundError: pass
+        
+        # Linux - Safe Fallback: Tkinter Dinosaur Dialog
         return filedialog.askdirectory(parent=self, title=title)
 
     def browse_source(self):
