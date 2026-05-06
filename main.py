@@ -30,6 +30,60 @@ ORANGE_MAIN = ("#d35400", "#d35400")
 ORANGE_HOVER = ("#e67e22", "#e67e22")  
 
 # ==========================================
+# EXTENSÕES (SETS)
+# ==========================================
+
+VIDEO_EXTENSIONS = {
+    '.mp4', '.mkv', '.avi', '.mov', '.webm', '.flv', '.wmv', '.mpg', '.mpeg',
+    '.m4v', '.3gp', '.3g2', '.ts', '.mts', '.m2ts', '.vob', '.ogv', '.rm',
+    '.rmvb', '.asf', '.divx', '.f4v', '.h264', '.hevc', '.vp9', '.amv',
+    '.srt'
+}
+
+IMAGE_EXTENSIONS = {
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.tiff', '.tif',
+    '.ico', '.heic', '.heif', '.raw', '.cr2', '.nef', '.orf', '.sr2',
+    '.psd', '.ai', '.eps', '.indd', '.jfif', '.pjpeg', '.pjp'
+}
+
+AUDIO_EXTENSIONS = {
+    '.mp3', '.wav', '.flac', '.m4a', '.ogg', '.aac', '.wma', '.alac',
+    '.aiff', '.ape', '.opus', '.mid', '.midi', '.amr', '.ac3', '.dts',
+    '.ra'
+}
+
+DOCUMENT_EXTENSIONS = {
+    '.pdf', '.docx', '.doc', '.txt', '.rtf', '.odt', '.ott',
+    '.xlsx', '.xls', '.csv', '.ods',
+    '.ppt', '.pptx', '.odp',
+    '.md', '.log', '.tex', '.wpd',
+    '.html', '.mhtml', '.htm', '.msg', '.eml', '.pst'
+}
+
+ARCHIVE_EXTENSIONS = {
+    '.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz', '.lz', '.lzma',
+    '.cab', '.iso', '.arj', '.z', '.tgz', '.tbz2', '.txz'
+}
+
+EXECUTABLE_EXTENSIONS = {
+    '.exe', '.msi', '.apk', '.app', '.bin', '.run', '.jar'
+}
+
+CODE_EXTENSIONS = {
+    # Scripts e Automação
+    '.bat', '.cmd', '.sh', '.bash', '.zsh', '.ps1', '.vbs', '.wsf',
+    # Python
+    '.py', '.pyc', '.ipynb', '.whl',
+    # Web (Front/Back)
+    '.css', '.js', '.jsx', '.ts', '.tsx', '.php', '.cgi', '.pl',
+    # Outras Linguagens
+    '.c', '.cpp', '.cs', '.java', '.kt', '.swift', '.go', '.rs', '.rb',
+    # Dados e Configurações
+    '.json', '.xml', '.yaml', '.yml', '.ini', '.cfg', '.conf', '.env', '.sql', 
+    '.reg'
+}
+
+# ==========================================
 # DICIONÁRIO DE TRADUÇÕES (LOCALIZATION)
 # ==========================================
 LANGS = {
@@ -126,9 +180,9 @@ class FileOrganizerApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.config_file = "z_config.json"
-        self.undo_file = "z_undo_log.json"
-        self.version_file = "version.txt"
+        self.config_file = "bin/z_config.json"
+        self.undo_file = "bin/z_undo_log.json"
+        self.version_file = "bin/version.txt"
         self.current_lang = "en"
         self.current_theme = "Light"
         
@@ -228,7 +282,7 @@ class FileOrganizerApp(ctk.CTk):
         title_frame.pack(fill="x", padx=30, pady=(20, 0))
         
         base_dir = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
-        logo_path = os.path.join(base_dir, "logo.png")
+        logo_path = os.path.join(base_dir, "bin", "logo.png")
         
         if os.path.exists(logo_path):
             try:
@@ -1002,12 +1056,28 @@ class FileOrganizerApp(ctk.CTk):
 
     def get_file_type(self, filename):
         ext = os.path.splitext(filename)[1].lower()
-        if ext in ['.mp4', '.mkv', '.avi', '.mov', '.webm', '.flv']: return "Videos"
-        if ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg']: return "Pictures"
-        if ext in ['.mp3', '.wav', '.flac', '.m4a', '.ogg', '.aac']: return "Music"
-        if ext in ['.pdf', '.docx', '.doc', '.txt', '.xlsx', '.csv']: return "Documents"
-        if ext in ['.zip', '.rar', '.7z', '.tar']: return "Archives"
-        if ext in ['.exe', '.sh', '.bat', '.apk']: return "Executables"
+
+        if ext in VIDEO_EXTENSIONS:
+            return "Videos"
+
+        if ext in IMAGE_EXTENSIONS:
+            return "Pictures"
+
+        if ext in AUDIO_EXTENSIONS:
+            return "Music"
+
+        if ext in DOCUMENT_EXTENSIONS:
+            return "Documents"
+
+        if ext in ARCHIVE_EXTENSIONS:
+            return "Archives"
+
+        if ext in EXECUTABLE_EXTENSIONS:
+            return "Executables"
+        
+        if ext in CODE_EXTENSIONS:
+            return "Code & Scripts"
+        
         return "Other files"
 
     def get_creation_date(self, filepath):
