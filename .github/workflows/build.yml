@@ -84,6 +84,7 @@ jobs:
         run: |
           cp assets/icon.png bin/
           cp assets/Install_Z-Organizer.sh ./
+          chmod +x Install_Z-Organizer.sh
           zip -9 -r ${{ matrix.zip_name }} Z-Organizer Install_Z-Organizer.sh bin
 
       - name: Upload Artifacts to Pipeline
