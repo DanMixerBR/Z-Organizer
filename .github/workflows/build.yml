@@ -65,7 +65,7 @@ jobs:
       - name: Criar version.txt e preparar pasta bin
         shell: bash
         run: |
-          echo "${{ github.event.inputs.versao_tag }}" > version.txt
+          echo "${{ github.event.inputs.versao_tag }}" | tr -d 'A-Za-z' > version.txt
           mkdir -p bin
           cp version.txt bin/
           cp assets/logo.png bin/
