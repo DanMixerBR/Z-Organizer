@@ -73,13 +73,18 @@ jobs:
       # COMPRESSÃO MÁXIMA: Usando 7-Zip no Windows (-mx=9). Adicionamos a pasta 'bin'
       - name: Zip Artifact (Windows)
         if: matrix.os == 'windows-latest'
-        run: 7z a -tzip -mx=9 ${{ matrix.zip_name }} Z-Organizer.exe bin
+        run: |
+          cp assets/icon.ico bin/
+          7z a -tzip -mx=9 ${{ matrix.zip_name }} Z-Organizer.exe bin
 
       # COMPRESSÃO MÁXIMA: Usando zip no Linux (-9). 
       # Mudamos de -j para -r para preservar a pasta 'bin' dentro do zip
       - name: Zip Artifact (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: zip -9 -r ${{ matrix.zip_name }} Z-Organizer bin
+        run: |
+          cp assets/icon.png bin/
+          cp assets/Install_Z-Organizer.sh ./
+          zip -9 -r ${{ matrix.zip_name }} Z-Organizer bin
 
       - name: Upload Artifacts to Pipeline
         uses: actions/upload-artifact@v4
