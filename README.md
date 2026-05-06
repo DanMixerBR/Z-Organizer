@@ -1,10 +1,16 @@
-# 🗂️ Z-Organizer
+<div align="center">
+  <img src="assets/logo_z.png" alt="CopynDown Logo" width="150">
+  <h1>Z-Organizer</h1>
+  <p>The ultimate cross-platform file organizer. Declutter your files and folders in seconds with smart rules, hybrid conditions, and automated classification.</p>
+  <p><b>Developed with 💻 by DanMixerBR</b></p>
+<p>
 
 ![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.12-blue.svg)
+  </p>
+</div>
 
-The ultimate cross-platform file organizer. Declutter your files and folders in seconds with smart rules, hybrid conditions, and automated classification.
 
 ## ✨ Features
 
