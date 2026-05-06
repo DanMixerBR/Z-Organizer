@@ -46,35 +46,39 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc python3-dev zip
 
-      # --- NOVO: Compilação Windows (PyInstaller) ---
-      # Usamos --windowed para ocultar o console (CMD) no Windows
+      # --- NOVO: Compilação Windows (PyInstaller com Ícone) ---
       - name: Build Windows Executable (PyInstaller)
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name "Z-Organizer" main.py
+          pyinstaller --noconfirm --onefile --windowed --icon="assets/icon.ico" --name "Z-Organizer" main.py
           Move-Item -Path dist\Z-Organizer.exe -Destination Z-Organizer.exe
 
-      # --- NOVO: Compilação Linux (PyInstaller) ---
+      # --- NOVO: Compilação Linux (PyInstaller com Ícone) ---
       - name: Build Linux Executable (PyInstaller)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          pyinstaller --noconfirm --onefile --name "Z-Organizer" main.py
+          pyinstaller --noconfirm --onefile --icon="assets/icon.png" --name "Z-Organizer" main.py
           mv dist/Z-Organizer Z-Organizer
 
-      # A tag 'shell: bash' garante que o arquivo seja salvo em UTF-8 puro em ambos os sistemas
-      - name: Criar arquivo version.txt
+      # A tag 'shell: bash' garante o funcionamento igual em ambos os SOs
+      # Aqui nós criamos o version.txt e preparamos a pasta 'bin'
+      - name: Criar version.txt e preparar pasta bin
         shell: bash
-        run: echo "${{ github.event.inputs.versao_tag }}" > version.txt
+        run: |
+          echo "${{ github.event.inputs.versao_tag }}" > version.txt
+          mkdir -p bin
+          cp assets/logo.png bin/
 
-      # COMPRESSÃO MÁXIMA: Usando 7-Zip no Windows (-mx=9)
+      # COMPRESSÃO MÁXIMA: Usando 7-Zip no Windows (-mx=9). Adicionamos a pasta 'bin'
       - name: Zip Artifact (Windows)
         if: matrix.os == 'windows-latest'
-        run: 7z a -tzip -mx=9 ${{ matrix.zip_name }} Z-Organizer.exe version.txt
+        run: 7z a -tzip -mx=9 ${{ matrix.zip_name }} Z-Organizer.exe version.txt bin
 
-      # COMPRESSÃO MÁXIMA: Usando zip no Linux (-9)
+      # COMPRESSÃO MÁXIMA: Usando zip no Linux (-9). 
+      # Mudamos de -j para -r para preservar a pasta 'bin' dentro do zip
       - name: Zip Artifact (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: zip -9 -j ${{ matrix.zip_name }} Z-Organizer version.txt
+        run: zip -9 -r ${{ matrix.zip_name }} Z-Organizer version.txt bin
 
       - name: Upload Artifacts to Pipeline
         uses: actions/upload-artifact@v4
