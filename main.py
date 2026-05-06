@@ -771,32 +771,49 @@ class FileOrganizerApp(ctk.CTk):
         threading.Thread(target=self._task_find_duplicates, args=(src,), daemon=True).start()
 
     def _task_find_duplicates(self, src):
-        hashes = {}
         dupes_folder = os.path.join(src, "Duplicates")
         moved = 0
         
         try:
+            # ETAPA 1: Agrupar arquivos por tamanho exato (Muito rápido, lê apenas metadados)
+            size_dict = {}
             for root, _, files in os.walk(src):
                 if root.startswith(dupes_folder): continue
                 for file in files:
                     filepath = os.path.join(root, file)
-                    file_hash = hashlib.md5()
                     try:
-                        with open(filepath, "rb") as f:
-                            for chunk in iter(lambda: f.read(4096), b""): file_hash.update(chunk)
-                        h = file_hash.hexdigest()
-                        
-                        if h in hashes:
-                            if not os.path.exists(dupes_folder): os.makedirs(dupes_folder)
-                            
-                            safe_path = self.get_unique_path(dupes_folder, file, filepath)
-                            self.force_move(filepath, safe_path)
-                            moved += 1
-                        else: hashes[h] = filepath
+                        size = os.path.getsize(filepath)
+                        if size not in size_dict:
+                            size_dict[size] = []
+                        size_dict[size].append(filepath)
                     except: pass
+            
+            # ETAPA 2: Ler o "DNA" (Hash) APENAS dos arquivos que possuem o mesmo tamanho
+            hashes = {}
+            for size, file_paths in size_dict.items():
+                if len(file_paths) > 1: # Só entra aqui se tiver arquivos suspeitos de serem iguais
+                    for filepath in file_paths:
+                        file_hash = hashlib.md5()
+                        try:
+                            with open(filepath, "rb") as f:
+                                # Chunk aumentado de 4096 (4KB) para 65536 (64KB) para leitura mais rápida do HD/SSD
+                                for chunk in iter(lambda: f.read(65536), b""): 
+                                    file_hash.update(chunk)
+                            h = file_hash.hexdigest()
+                            
+                            if h in hashes:
+                                if not os.path.exists(dupes_folder): os.makedirs(dupes_folder)
+                                
+                                file = os.path.basename(filepath)
+                                safe_path = self.get_unique_path(dupes_folder, file, filepath)
+                                self.force_move(filepath, safe_path)
+                                moved += 1
+                            else: 
+                                hashes[h] = filepath
+                        except: pass
         finally:
             self.safe_ui(self.hide_loading)
-            self.safe_ui(lambda: self.after(200, lambda: messagebox.showinfo("Duplicatas", LANGS[self.current_lang]["msg_dupes"].format(moved))))
+            self.safe_ui(messagebox.showinfo, "Duplicatas", LANGS[self.current_lang]["msg_dupes"].format(moved))
 
     def start_undo_last_action(self):
         if not os.path.exists(self.undo_file): return
