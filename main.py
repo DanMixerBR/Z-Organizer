@@ -297,11 +297,7 @@ class FileOrganizerApp(ctk.CTk):
                 self.logo_img = ctk.CTkImage(light_image=img_data, dark_image=img_data, size=(32, 32))
                 ctk.CTkLabel(title_frame, image=self.logo_img, text="").pack(side="left", padx=(0, 10))
             except Exception as e:
-                import tkinter.messagebox as msg
-                msg.showerror("Logo Error", f"File exists, but loading failed:\n{logo_path}\n\nError: {e}")
-        else:
-            import tkinter.messagebox as msg
-            msg.showwarning("Logo Error", f"File NOT FOUND at:\n{logo_path}")
+                print(f"Warning: Failed to load logo.png: {e}")
 
         self.lbl_title = ctk.CTkLabel(title_frame, text="", font=("Segoe UI", 20, "bold"), text_color=ORANGE_MAIN)
         self.lbl_title.pack(side="left")
