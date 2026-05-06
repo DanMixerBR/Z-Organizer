@@ -37,5 +37,6 @@ echo " AND copied to your Desktop."
 echo "================================================="
 
 nohup ./Z-Organizer >/dev/null 2>&1 &
+disown
 
 sleep 4
