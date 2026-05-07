@@ -1119,11 +1119,11 @@ class FileOrganizerApp(ctk.CTk):
         return "Other files"
 
     def get_creation_date(self, filepath):
-        try: return datetime.fromtimestamp(os.stat(filepath).st_birthtime).strftime('%Y-%m')
-        except: return datetime.fromtimestamp(os.stat(filepath).st_ctime).strftime('%Y-%m')
+        try: return datetime.fromtimestamp(os.stat(filepath).st_birthtime).strftime('%Y-%m-%d')
+        except: return datetime.fromtimestamp(os.stat(filepath).st_ctime).strftime('%Y-%m-%d')
         
     def get_modification_date(self, filepath):
-        return datetime.fromtimestamp(os.stat(filepath).st_mtime).strftime('%Y-%m')
+        return datetime.fromtimestamp(os.stat(filepath).st_mtime).strftime('%Y-%m-%d')
 
     def get_name_category(self, filename):
         return filename[0].upper() if filename[0].isalpha() else "#" 
