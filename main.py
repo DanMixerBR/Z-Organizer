@@ -958,9 +958,9 @@ class FileOrganizerApp(ctk.CTk):
                         except: pass
 
                     if match:
-                        # Em vez de mover na hora e dar "break", ele anota o destino.
-                        # Se uma regra abaixo bater de novo, ele altera esse destino! (A última vence)
+                        # Com break a primeira regra vence, sem break a última regra vence
                         final_dest = rule["dest"]
+                        break
                 
                 # Aplicando a movimentação baseada na última regra vitoriosa
                 if final_dest:
