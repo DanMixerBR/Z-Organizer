@@ -29,7 +29,7 @@ echo   Please restart the app.
 echo %G%-------------------------------------------------------%W%
 echo.
 
-timeout /t 3 >nul
+timeout /t 5 >nul
 
 :: Self-deletion logic to keep the workspace clean
 start /b "" cmd /c "timeout /t 1 >nul & del /f /q "%~f0""
