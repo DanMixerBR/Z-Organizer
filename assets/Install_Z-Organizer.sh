@@ -36,6 +36,7 @@ echo " Success! Shortcut added to Application Menu"
 echo " AND copied to your Desktop."
 echo "================================================="
 
+cd core
 nohup ./Z-Organizer >/dev/null 2>&1 &
 disown
 
