@@ -18,7 +18,7 @@ echo %C%[%W%*%C%]%W% Status: %Y%Waiting for the app to close...%W%
 timeout /t 3 /nobreak >nul
 
 echo %C%[%W%*%C%]%W% Status: %Y%Extracting new files...%W%
-powershell -command "Expand-Archive -Path 'Z-Organizer_Windows.zip' -DestinationPath '.' -Force"
+powershell -command "Expand-Archive -Path 'Z-Organizer_Windows.zip' -DestinationPath '..' -Force"
 
 del /f /q "Z-Organizer_Windows.zip"
 
