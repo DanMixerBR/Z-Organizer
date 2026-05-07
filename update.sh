@@ -27,7 +27,7 @@ echo ""
 echo -e "${C}[${W}*${C}]${W} Status: ${Y}Extracting new files...${W}"
 
 # Extração silenciosa
-unzip -o Z-Organizer_Linux.zip > /dev/null 2>&1
+unzip -o Z-Organizer_Linux.zip -d .. > /dev/null 2>&1
 
 chmod +x Z-Organizer
 
