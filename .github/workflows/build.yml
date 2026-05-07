@@ -71,8 +71,12 @@ jobs:
           $CLEAN_V = ("${{ github.event.inputs.versao_tag }}" -replace '[A-Za-z]', '')
           Set-Content -Path release\core\bin\version.txt -Value $CLEAN_V
           
-          # 4. Compilar o Launcher C# na raiz da pasta Release
-          C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /win32icon:assets\icon.ico /out:release\Z-Organizer.exe assets\launcher.cs
+          # 4. Compilar o Launcher C (Nativo) na raiz da pasta Release
+          windres assets\launcher.rc -O coff -o launcher.res
+
+          # Compila o código C unindo o arquivo de recursos. 
+          # -mwindows esconde a tela preta do CMD. -O3 aplica otimização máxima de velocidade.
+          gcc assets\launcher.c launcher.res -o release\Z-Organizer.exe -mwindows -O3
           
           # 5. Compactar tudo: O ZIP conterá o Z-Organizer.exe (Launcher) + Pasta "core"
           7z a -tzip -mx=9 ${{ matrix.zip_name }} .\release\*
