@@ -36,9 +36,12 @@ rm -f Z-Organizer_Linux.zip
 echo ""
 echo -e "${G}-------------------------------------------------------${W}"
 echo "  [SUCCESS] Update completed!"
-echo "  Please restart the app."
+echo "  Starting Z-Organizer..."
 echo -e "${G}-------------------------------------------------------${W}"
 echo ""
+
+nohup ./Z-Organizer >/dev/null 2>&1 &
+disown
 
 sleep 3
 
