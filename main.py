@@ -873,23 +873,13 @@ class FileOrganizerApp(ctk.CTk):
         t = LANGS[self.current_lang]
         active_rules = []
         
+        # Pega as regras exatamente na ordem em que o usuário as criou na tela
         for r in self.rules:
             val = r["val"].get().strip()
             folder_name = r["dest"].get().strip()
             if val and folder_name:
                 clean_folder = "".join(c for c in folder_name if c not in r'\/:*?"<>|')
                 if clean_folder: active_rules.append({"key": r["current_key"], "val": val, "dest": clean_folder})
-
-        # NOVO MOTOR DE PRIORIDADE INTELIGENTE
-        priority_map = {
-            "name": 1, "name_not": 1, "name_starts": 1, "name_ends": 1, "name_exact": 1,
-            "ext": 2, "ext_not": 2,
-            "size_gt": 3, "size_lt": 3,
-            "date_c": 4, "date_c_after": 4, "date_c_exact": 4,
-            "date_m": 4, "date_m_after": 4, "date_m_exact": 4
-        }
-        
-        active_rules.sort(key=lambda rule: priority_map.get(rule["key"], 99))
 
         has_auto = any([self.chk_type_var.get(), self.chk_date_c_var.get(), self.chk_date_m_var.get(), self.chk_size_var.get(), self.chk_name_var.get()])
         
@@ -913,12 +903,14 @@ class FileOrganizerApp(ctk.CTk):
                 if not os.path.exists(filepath): continue
                 
                 file = os.path.basename(filepath)
-                rule_matched = False
+                
+                # === NOVA LÓGICA DE REGRAS EM CASCATA ===
+                final_dest = None # Guarda a decisão final
                 
                 for rule in active_rules:
                     match = False
                     ext = os.path.splitext(file)[1].lower()
-                    base_name = os.path.splitext(file)[0].lower() # Nome sem extensão
+                    base_name = os.path.splitext(file)[0].lower()
                     rule_val = rule["val"].lower()
                     
                     if rule["key"] == "ext" and ext == rule_val: match = True
@@ -966,23 +958,30 @@ class FileOrganizerApp(ctk.CTk):
                         except: pass
 
                     if match:
-                        dest_folder = os.path.join(src, rule["dest"])
-                        safe_new_path = self.get_unique_path(dest_folder, file, filepath)
-                        
-                        if simulate: sim_moves.append((file, safe_new_path))
-                        else:
-                            if filepath != safe_new_path: 
-                                if not os.path.exists(dest_folder): os.makedirs(dest_folder)
-                                try:
-                                    self.force_move(filepath, safe_new_path)
-                                    moves_dict[safe_new_path] = filepath
-                                    moved_count += 1
-                                except: pass
-                        rule_matched = True
-                        break 
+                        # Em vez de mover na hora e dar "break", ele anota o destino.
+                        # Se uma regra abaixo bater de novo, ele altera esse destino! (A última vence)
+                        final_dest = rule["dest"]
                 
-                if rule_matched: continue 
+                # Aplicando a movimentação baseada na última regra vitoriosa
+                if final_dest:
+                    dest_folder = os.path.join(src, final_dest)
+                    safe_new_path = self.get_unique_path(dest_folder, file, filepath)
+                    
+                    if simulate: sim_moves.append((file, safe_new_path))
+                    else:
+                        if filepath != safe_new_path: 
+                            if not os.path.exists(dest_folder): os.makedirs(dest_folder)
+                            try:
+                                self.force_move(filepath, safe_new_path)
+                                moves_dict[safe_new_path] = filepath
+                                moved_count += 1
+                            except: pass
+                            
+                    # Se caiu em uma regra manual, o loop "continue" pula a Classificação Automática!
+                    continue 
 
+                # ===============================================
+                # CLASSIFICAÇÃO AUTOMÁTICA (Só age se NENHUMA regra manual pegou o arquivo)
                 if has_auto:
                     sub_paths = []
                     if self.chk_type_var.get(): sub_paths.append(self.get_file_type(file))
