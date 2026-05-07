@@ -38,27 +38,40 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller
+          pip install nuitka
 
       - name: Install System Dependencies (Linux Only)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc python3-dev zip
+          sudo apt-get install -y gcc python3-dev zip patchelf
 
-      # --- NOVO: Compilação Windows (PyInstaller com Ícone) ---
-      - name: Build Windows Executable (PyInstaller)
+      # --- NOVO: Compilação Windows (Nuitka + Warp Packer) ---
+      - name: Build Windows Executable
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --noconfirm --onefile --hidden-import="PIL._tkinter_finder" --windowed --icon="assets/icon.ico" --name "Z-Organizer" main.py
-          Move-Item -Path dist\Z-Organizer.exe -Destination Z-Organizer.exe
+          # 1. Nuitka gera a pasta Standalone (Segura contra Antivírus)
+          python -m nuitka --standalone --windows-disable-console --windows-icon-from-ico="assets/icon.ico" --enable-plugin=tk-inter --include-package-data=customtkinter --output-dir=dist main.py
+          
+          # 2. Baixar Warp Packer
+          Invoke-WebRequest -Uri https://github.com/dgiagio/warp/releases/download/v0.3.0/windows-x64.warp-packer.exe -OutFile warp-packer.exe
+          
+          # 3. Warp empacota a pasta num executável Onefile instantâneo
+          .\warp-packer.exe --arch windows-x64 --input_dir dist\main.dist --exec main.exe --output Z-Organizer.exe
 
-      # --- NOVO: Compilação Linux (PyInstaller com Ícone) ---
-      - name: Build Linux Executable (PyInstaller)
+      # --- NOVO: Compilação Linux (Nuitka + Warp Packer) ---
+      - name: Build Linux Executable
         if: matrix.os == 'ubuntu-latest'
         run: |
-          pyinstaller --noconfirm --onefile --hidden-import="PIL._tkinter_finder" --icon="assets/icon.png" --name "Z-Organizer" main.py
-          mv dist/Z-Organizer Z-Organizer
+          # 1. Nuitka gera a pasta Standalone
+          python -m nuitka --standalone --enable-plugin=tk-inter --include-package-data=customtkinter --output-dir=dist main.py
+          
+          # 2. Baixar Warp Packer
+          wget https://github.com/dgiagio/warp/releases/download/v0.3.0/linux-x64.warp-packer -O warp-packer
+          chmod +x warp-packer
+          
+          # 3. Warp empacota a pasta num executável Onefile instantâneo
+          ./warp-packer --arch linux-x64 --input_dir dist/main.dist --exec main --output Z-Organizer
 
       # A tag 'shell: bash' garante o funcionamento igual em ambos os SOs
       # Aqui nós criamos o version.txt e preparamos a pasta 'bin'
