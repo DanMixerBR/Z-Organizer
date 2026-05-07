@@ -25,7 +25,7 @@ del /f /q "Z-Organizer_Windows.zip"
 echo.
 echo %G%-------------------------------------------------------%W%
 echo   [SUCCESS] Update completed!
-echo   Starting Z-Organizer...
+echo   Please restart the app.
 echo %G%-------------------------------------------------------%W%
 echo.
 
