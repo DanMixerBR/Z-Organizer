@@ -17,6 +17,14 @@ import customtkinter as ctk
 from PIL import Image
 
 # ==========================================
+# GLOBAL PATH FIX (LINUX/WINDOWS)
+# ==========================================
+if getattr(sys, 'frozen', False):
+    base_dir = os.path.dirname(os.path.realpath(sys.executable))
+else:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# ==========================================
 # ESQUEMA DE CORES DINÂMICAS (Light, Dark)
 # ==========================================
 BG_APP = ("#FFFFFF", "#141414")   
@@ -28,14 +36,6 @@ TEXT_MAIN = ("#111827", "#e0e0e0")
 TEXT_MUTED = ("#6B7280", "#8a8a8a")    
 ORANGE_MAIN = ("#d35400", "#d35400")   
 ORANGE_HOVER = ("#e67e22", "#e67e22")  
-
-# ==========================================
-# GLOBAL PATH FIX (LINUX/WINDOWS)
-# ==========================================
-if getattr(sys, 'frozen', False):
-    base_dir = os.path.dirname(os.path.realpath(sys.executable))
-else:
-    base_dir = os.path.dirname(os.path.abspath(__file__))
 
 # ==========================================
 # EXTENSÕES (SETS)
@@ -202,8 +202,8 @@ class FileOrganizerApp(ctk.CTk):
         ctk.set_appearance_mode(self.current_theme)
 
         self.title("Z-Organizer")
-        self.center_window(self, 850, 700)
-        self.resizable(False, False)
+        self.center_window(self, 850, 670)
+        self.resizable(True, True)
         self.configure(fg_color=BG_APP)
         self.is_windows = os.name == 'nt'
         
