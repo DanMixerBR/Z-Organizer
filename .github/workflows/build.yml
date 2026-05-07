@@ -38,7 +38,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install nuitka pefile
+          pip install nuitka
 
       - name: Install System Dependencies (Linux Only)
         if: matrix.os == 'ubuntu-latest'
@@ -46,75 +46,59 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc python3-dev zip patchelf
 
-      # ---> NOVO: Prepara a pasta 'bin' antes da compilação do Warp
-      - name: Preparar pasta bin com arquivos e versão
-        shell: bash
-        run: |
-          mkdir -p bin_temp
-          echo "${{ github.event.inputs.versao_tag }}" | tr -d 'A-Za-z' > bin_temp/version.txt
-          cp assets/logo.png bin_temp/
-          cp assets/icon.ico bin_temp/ 2>/dev/null || true
-          cp assets/icon.png bin_temp/ 2>/dev/null || true
-
-      # --- Compilação Windows (Nuitka + Warp Packer + RCEdit + PEFile) ---
+      # --- Compilação Windows (Nuitka + Launcher C#) ---
       - name: Build Windows Executable
         if: matrix.os == 'windows-latest'
+        shell: powershell
         run: |
-          # 1. Nuitka gera o binário
-          python -m nuitka --assume-yes-for-downloads --standalone --disable-ccache --windows-console-mode=disable --windows-icon-from-ico="assets/icon.ico" --enable-plugin=tk-inter --output-filename=Z-Organizer.exe main.py
-          
-          # ---> ADICIONADO: Move a pasta 'bin_temp' preparada para dentro do 'main.dist'
-          Move-Item -Path bin_temp -Destination main.dist\bin
-          
-          # 2. Warp Packer cria o envelope Onefile
-          Invoke-WebRequest -Uri https://github.com/dgiagio/warp/releases/download/v0.3.0/windows-x64.warp-packer.exe -OutFile warp-packer.exe
-          .\warp-packer.exe --arch windows-x64 --input_dir main.dist --exec Z-Organizer.exe --output Z-Organizer.exe
-
-          # --- FILTRO DE VERSÃO ENXUTO (Estilo version.txt) ---
           $CLEAN_V = ("${{ github.event.inputs.versao_tag }}" -replace '[A-Za-z]', '').Trim('.') + ".0"
-
-          # 3. RCEdit injeta o ícone e metadados
-          Invoke-WebRequest -Uri https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -OutFile rcedit.exe
-          .\rcedit.exe Z-Organizer.exe `
-            --set-icon "assets/icon.ico" `
-            --set-version-string "CompanyName" "DanMixerBR" `
-            --set-version-string "ProductName" "Z-Organizer" `
-            --set-version-string "FileDescription" "Smart File Management" `
-            --set-version-string "FileVersion" "$CLEAN_V" `
-            --set-version-string "ProductVersion" "$CLEAN_V" `
-            --set-version-string "LegalCopyright" "MIT License"
+          # 1. Nuitka gera o binário do app dentro da pasta main.dist
+          python -m nuitka --assume-yes-for-downloads --standalone --windows-console-mode=disable `
+          --enable-plugin=tk-inter --windows-icon-from-ico="assets/icon.ico" `
+          --company-name="DanMixerBR" --product-name="Z-Organizer" `
+          --file-description="Z-Organizer" --copyright="MIT License" `
+          --file-version="$CLEAN_V" --product-version="$CLEAN_V" `
+          --output-filename=Z-Organizer.exe main.py
           
-          # 4. PEFile remove o terminal
-          python -c "import pefile; pe = pefile.PE('Z-Organizer.exe'); pe.OPTIONAL_HEADER.Subsystem = 2; pe.write('Z-Organizer-GUI.exe'); pe.close()"
-          Move-Item -Path Z-Organizer-GUI.exe -Destination Z-Organizer.exe -Force
+          # 2. Estruturar a pasta Release e a Subpasta core/bin
+          New-Item -ItemType Directory -Path release\core\bin
+          Move-Item -Path main.dist\* -Destination release\core
+          Remove-Item main.dist
+          
+          # 3. Copiar os Assets e Gerar o version.txt na pasta core/bin
+          Copy-Item -Path assets\logo.png -Destination release\core\bin\
+          Copy-Item -Path assets\icon.ico -Destination release\core\bin\
+          $CLEAN_V = ("${{ github.event.inputs.versao_tag }}" -replace '[A-Za-z]', '')
+          Set-Content -Path release\core\bin\version.txt -Value $CLEAN_V
+          
+          # 4. Compilar o Launcher C# na raiz da pasta Release
+          C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /win32icon:assets\icon.ico /out:release\Z-Organizer.exe assets\launcher.cs
+          
+          # 5. Compactar tudo: O ZIP conterá o Z-Organizer.exe (Launcher) + Pasta "core"
+          7z a -tzip -mx=9 ${{ matrix.zip_name }} .\release\*
 
-      # --- Compilação Linux (Nuitka + Warp Packer Corrigido) ---
+      # --- Compilação Linux (Nuitka Standalone Puro) ---
       - name: Build Linux Executable
         if: matrix.os == 'ubuntu-latest'
         run: |
-          # 1. Nuitka gera o binário
+          # 1. Nuitka gera o binário nativo Linux dentro de main.dist
           python -m nuitka --assume-yes-for-downloads --standalone --disable-ccache --enable-plugin=tk-inter -o Z-Organizer main.py
           
-          # ---> ADICIONADO: Move a pasta 'bin_temp' preparada para dentro do 'main.dist'
-          mv bin_temp main.dist/bin
+          # 2. Estruturar a pasta Release e core/bin
+          mkdir -p release/core/bin
+          mv main.dist/* release/core/
+          rm -rf main.dist
           
-          # 2. Warp Packer cria o envelope Onefile
-          wget https://github.com/dgiagio/warp/releases/download/v0.3.0/linux-x64.warp-packer -O warp-packer
-          chmod +x warp-packer
-          ./warp-packer --arch linux-x64 --input_dir main.dist --exec Z-Organizer --output Z-Organizer
-
-      # ---> ZIPAGEM MAIS LIMPA: Como a pasta 'bin' está embutida, não precisa ficar solta no ZIP
-      - name: Zip Artifact (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          7z a -tzip -mx=9 ${{ matrix.zip_name }} Z-Organizer.exe
-
-      - name: Zip Artifact (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          cp assets/Install_Z-Organizer.sh ./
-          chmod +x Install_Z-Organizer.sh
-          zip -9 -j ${{ matrix.zip_name }} Z-Organizer Install_Z-Organizer.sh
+          # 3. Copiar os Assets e Gerar o version.txt
+          cp assets/logo.png release/core/bin/
+          cp assets/icon.png release/core/bin/ 2>/dev/null || true
+          echo "${{ github.event.inputs.versao_tag }}" | tr -d 'A-Za-z' > release/core/bin/version.txt
+          
+          # 4. Adicionar o script de instalação Linux e Zipar
+          cp assets/Install_Z-Organizer.sh release/
+          chmod +x release/Install_Z-Organizer.sh
+          cd release
+          zip -9 -r ../${{ matrix.zip_name }} ./*
 
       - name: Upload Artifacts to Pipeline
         uses: actions/upload-artifact@v4
@@ -144,12 +128,16 @@ jobs:
           HASH_LINUX=$(sha256sum ./downloads/Z-Organizer_Linux.zip | awk '{ print $1 }')
           echo "$HASH_WIN" > hash.txt
           echo "$HASH_LINUX" >> hash.txt
+          
+          # Igual ao CopynDown: garante que o version.txt da raiz do GitHub também fique atualizado!
+          mkdir -p bin
+          echo "${{ github.event.inputs.versao_tag }}" | tr -d 'A-Za-z' > bin/version.txt
 
       - name: Salvar os Hashes direto no Repositório (Commit Automático)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "🤖 Atualização automática de hashes para a versão ${{ github.event.inputs.versao_tag }}"
-          file_pattern: "hash.txt"
+          file_pattern: "hash.txt bin/version.txt"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
