@@ -43,7 +43,7 @@ echo ""
 nohup ./Z-Organizer >/dev/null 2>&1 &
 disown
 
-sleep 3
+sleep 2
 
 # Self-deletion
 rm -- "$0"
