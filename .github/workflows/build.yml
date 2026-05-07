@@ -46,22 +46,45 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc python3-dev zip patchelf
 
+      # ---> NOVO: Prepara a pasta 'bin' antes da compilação do Warp
+      - name: Preparar pasta bin com arquivos e versão
+        shell: bash
+        run: |
+          mkdir -p bin_temp
+          echo "${{ github.event.inputs.versao_tag }}" | tr -d 'A-Za-z' > bin_temp/version.txt
+          cp assets/logo.png bin_temp/
+          cp assets/icon.ico bin_temp/ 2>/dev/null || true
+          cp assets/icon.png bin_temp/ 2>/dev/null || true
+
       # --- Compilação Windows (Nuitka + Warp Packer + RCEdit + PEFile) ---
       - name: Build Windows Executable
         if: matrix.os == 'windows-latest'
         run: |
-          # 1. Nuitka gera o binário com o nome correto dentro da pasta standalone
+          # 1. Nuitka gera o binário
           python -m nuitka --assume-yes-for-downloads --standalone --disable-ccache --windows-console-mode=disable --windows-icon-from-ico="assets/icon.ico" --enable-plugin=tk-inter --output-filename=Z-Organizer.exe main.py
+          
+          # ---> ADICIONADO: Move a pasta 'bin_temp' preparada para dentro do 'main.dist'
+          Move-Item -Path bin_temp -Destination main.dist\bin
           
           # 2. Warp Packer cria o envelope Onefile
           Invoke-WebRequest -Uri https://github.com/dgiagio/warp/releases/download/v0.3.0/windows-x64.warp-packer.exe -OutFile warp-packer.exe
           .\warp-packer.exe --arch windows-x64 --input_dir main.dist --exec Z-Organizer.exe --output Z-Organizer.exe
 
-          # 3. RCEdit injeta o ícone e metadados no envelope do Warp
+          # --- FILTRO DE VERSÃO ENXUTO (Estilo version.txt) ---
+          $CLEAN_V = ("${{ github.event.inputs.versao_tag }}" -replace '[A-Za-z]', '').Trim('.') + ".0"
+
+          # 3. RCEdit injeta o ícone e metadados
           Invoke-WebRequest -Uri https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -OutFile rcedit.exe
-          .\rcedit.exe Z-Organizer.exe --set-icon "assets/icon.ico" --set-version-string "CompanyName" "DanMixerBR" --set-version-string "ProductName" "Z-Organizer" --set-version-string "FileDescription" "Gerenciamento Inteligente de Arquivos" --set-version-string "FileVersion" "${{ github.event.inputs.versao_tag }}"
+          .\rcedit.exe Z-Organizer.exe `
+            --set-icon "assets/icon.ico" `
+            --set-version-string "CompanyName" "DanMixerBR" `
+            --set-version-string "ProductName" "Z-Organizer" `
+            --set-version-string "FileDescription" "Smart File Management" `
+            --set-version-string "FileVersion" "$CLEAN_V" `
+            --set-version-string "ProductVersion" "$CLEAN_V" `
+            --set-version-string "LegalCopyright" "MIT License"
           
-          # 4. PEFile remove o terminal do envelope do Warp (Subsystem 3 -> 2)
+          # 4. PEFile remove o terminal
           python -c "import pefile; pe = pefile.PE('Z-Organizer.exe'); pe.OPTIONAL_HEADER.Subsystem = 2; pe.write('Z-Organizer-GUI.exe'); pe.close()"
           Move-Item -Path Z-Organizer-GUI.exe -Destination Z-Organizer.exe -Force
 
@@ -69,35 +92,29 @@ jobs:
       - name: Build Linux Executable
         if: matrix.os == 'ubuntu-latest'
         run: |
-          # 1. Nuitka gera o binário com o nome fixo
+          # 1. Nuitka gera o binário
           python -m nuitka --assume-yes-for-downloads --standalone --disable-ccache --enable-plugin=tk-inter -o Z-Organizer main.py
           
-          # 2. Warp Packer cria o envelope Onefile para Linux
+          # ---> ADICIONADO: Move a pasta 'bin_temp' preparada para dentro do 'main.dist'
+          mv bin_temp main.dist/bin
+          
+          # 2. Warp Packer cria o envelope Onefile
           wget https://github.com/dgiagio/warp/releases/download/v0.3.0/linux-x64.warp-packer -O warp-packer
           chmod +x warp-packer
           ./warp-packer --arch linux-x64 --input_dir main.dist --exec Z-Organizer --output Z-Organizer
 
-      - name: Criar version.txt e preparar pasta bin
-        shell: bash
-        run: |
-          echo "${{ github.event.inputs.versao_tag }}" | tr -d 'A-Za-z' > version.txt
-          mkdir -p bin
-          cp version.txt bin/
-          cp assets/logo.png bin/
-
+      # ---> ZIPAGEM MAIS LIMPA: Como a pasta 'bin' está embutida, não precisa ficar solta no ZIP
       - name: Zip Artifact (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          cp assets/icon.ico bin/
-          7z a -tzip -mx=9 ${{ matrix.zip_name }} Z-Organizer.exe bin
+          7z a -tzip -mx=9 ${{ matrix.zip_name }} Z-Organizer.exe
 
       - name: Zip Artifact (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          cp assets/icon.png bin/
           cp assets/Install_Z-Organizer.sh ./
           chmod +x Install_Z-Organizer.sh
-          zip -9 -r ${{ matrix.zip_name }} Z-Organizer Install_Z-Organizer.sh bin
+          zip -9 -j ${{ matrix.zip_name }} Z-Organizer Install_Z-Organizer.sh
 
       - name: Upload Artifacts to Pipeline
         uses: actions/upload-artifact@v4
