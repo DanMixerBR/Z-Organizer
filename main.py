@@ -985,8 +985,11 @@ class FileOrganizerApp(ctk.CTk):
                 if has_auto:
                     sub_paths = []
                     if self.chk_type_var.get(): sub_paths.append(self.get_file_type(file))
-                    if self.chk_date_c_var.get(): sub_paths.append(self.get_creation_date(filepath))
-                    if self.chk_date_m_var.get(): sub_paths.append(self.get_modification_date(filepath))
+                    
+                    # AJUSTE AQUI: Usamos [:7] para pegar apenas "AAAA-MM" para o nome da pasta
+                    if self.chk_date_c_var.get(): sub_paths.append(self.get_creation_date(filepath)[:7])
+                    if self.chk_date_m_var.get(): sub_paths.append(self.get_modification_date(filepath)[:7])
+                    
                     if self.chk_size_var.get(): sub_paths.append(self.get_size_category(filepath))
                     if self.chk_name_var.get(): sub_paths.append(self.get_name_category(file))
 
