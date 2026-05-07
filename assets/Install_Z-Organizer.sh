@@ -8,15 +8,15 @@ DESKTOP_FILE="$HOME/.local/share/applications/z-organizer.desktop"
 USER_DESKTOP=$(xdg-user-dir DESKTOP)
 
 # Make the main app executable
-chmod +x "$DIR/Z-Organizer"
+chmod +x "$DIR/core/Z-Organizer"
 
 # 3. Create the shortcut file injecting the absolute paths
 echo "[Desktop Entry]" > "$DESKTOP_FILE"
 echo "Name=Z-Organizer" >> "$DESKTOP_FILE"
 echo "Comment=Smart File Management" >> "$DESKTOP_FILE"
-echo "Exec=\"$DIR/Z-Organizer\"" >> "$DESKTOP_FILE"
-echo "Path=$DIR" >> "$DESKTOP_FILE"
-echo "Icon=$DIR/bin/icon.png" >> "$DESKTOP_FILE"
+echo "Exec=\"$DIR/core/Z-Organizer\"" >> "$DESKTOP_FILE"
+echo "Path=$DIR/core" >> "$DESKTOP_FILE"
+echo "Icon=$DIR/core/bin/icon.png" >> "$DESKTOP_FILE"
 echo "Terminal=false" >> "$DESKTOP_FILE"
 echo "Type=Application" >> "$DESKTOP_FILE"
 echo "Categories=Utility;System;FileTools;" >> "$DESKTOP_FILE"
