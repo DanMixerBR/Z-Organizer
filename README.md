@@ -38,6 +38,14 @@
   <em>Dark Theme.</em>
 </p>
 
+## 🚀 How to Use (No Installation Required)
+
+Simply download the portable executable for your operating system:
+
+1. Go to the **[Releases](../../releases/latest)** tab.
+2. Download `Z-Organizer_Windows.zip` (Windows) or `Z-Organizer_Linux.zip` (Linux).
+3. Unzip to a folder of your choice and run `Z-Organizer`.
+
 ## 🛡️ Troubleshooting
 
 ### Windows SmartScreen Warning (False Positive)
@@ -55,14 +63,6 @@ It is completely safe to bypass this warning. To do so:
 <img src="assets/SmartScreen_Bypass_2.png" alt="Windows Interface" width="50%">
 
 *Note: You will only need to do this once. If you want to verify the safety of the application, feel free to inspect the open-source code in this repository.*
-
-## 🚀 How to Use (No Installation Required)
-
-Simply download the portable executable for your operating system:
-
-1. Go to the **[Releases](../../releases/latest)** tab.
-2. Download `Z-Organizer_Windows.zip` (Windows) or `Z-Organizer_Linux.zip` (Linux).
-3. Unzip to a folder of your choice and run `Z-Organizer`.
 
 ## 🛠️ For Developers (Running from source)
 
