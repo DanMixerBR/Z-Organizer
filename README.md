@@ -38,6 +38,24 @@
   <em>Dark Theme.</em>
 </p>
 
+## 🛡️ Troubleshooting
+
+### Windows SmartScreen Warning (False Positive)
+When running Z-Organizer for the first time on Windows, you might encounter a blue **Windows Defender SmartScreen** stating that it "protected your PC" from an unrecognized app.
+
+**Why does this happen?**
+Z-Organizer is an independent, open-source project. Because we haven't purchased an expensive Code Signing Certificate, Windows flags the `.exe` as an "Unknown Publisher" simply because it is new. 
+
+**How to run Z-Organizer safely:**
+It is completely safe to bypass this warning. To do so:
+1. Click on **"More info"** at the end of the paragraph.
+2. A new button will appear at the bottom. Click on **"Run anyway"**.
+
+<img src="assets/SmartScreen_Bypass_1.png" alt="Windows Interface" width="50%">
+<img src="assets/SmartScreen_Bypass_2.png" alt="Windows Interface" width="50%">
+
+*Note: You will only need to do this once. If you want to verify the safety of the application, feel free to inspect the open-source code in this repository.*
+
 ## 🚀 How to Use (No Installation Required)
 
 Simply download the portable executable for your operating system:
@@ -51,7 +69,7 @@ Simply download the portable executable for your operating system:
 Clone the repository and install the dependencies:
 
 ```bash
-git clone [https://github.com/DanMixerBR/Z-Organizer.git](https://github.com/DanMixerBR/Z-Organizer.git)
+git clone https://github.com/DanMixerBR/Z-Organizer.git
 cd Z-Organizer
 pip install -r requirements.txt
 python main.py
