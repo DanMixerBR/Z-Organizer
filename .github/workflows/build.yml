@@ -66,6 +66,7 @@ jobs:
           Remove-Item main.dist
           
           # 3. Copiar os Assets e Gerar o version.txt na pasta core/bin
+          Copy-Item -Path bin\translations.py -Destination release\core\bin\
           Copy-Item -Path assets\logo.png -Destination release\core\bin\
           Copy-Item -Path assets\icon.ico -Destination release\core\bin\
           $CLEAN_V = ("${{ github.event.inputs.versao_tag }}" -replace '[A-Za-z]', '')
@@ -94,6 +95,7 @@ jobs:
           rm -rf main.dist
           
           # 3. Copiar os Assets e Gerar o version.txt
+          cp bin/translations.py release/core/bin/
           cp assets/logo.png release/core/bin/
           cp assets/icon.png release/core/bin/ 2>/dev/null || true
           echo "${{ github.event.inputs.versao_tag }}" | tr -d 'A-Za-z' > release/core/bin/version.txt
