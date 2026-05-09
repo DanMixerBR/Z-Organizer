@@ -417,7 +417,14 @@ class FileOrganizerApp(ctk.CTk):
         f1 = ctk.CTkFrame(set_win, fg_color="transparent")
         f1.pack(fill="x", padx=40, pady=10)
         ctk.CTkLabel(f1, text="Language:", text_color=TEXT_MAIN).pack(side="left")
-        lang_menu = ctk.CTkOptionMenu(f1, values=["English", "Português", "Español", "Français", "Deutsch", "Italiano", "日本語", "한국어", "Русский"], fg_color=BG_INPUT, text_color=TEXT_MAIN, button_color=BG_INPUT)
+        lang_menu = ctk.CTkOptionMenu(
+            f1, 
+            values=["English", "Português", "Español", "Français", "Deutsch", "Italiano", "日本語", "한국어", "Русский"], 
+            fg_color=BG_INPUT, 
+            text_color=TEXT_MAIN, 
+            button_color=BG_INPUT,
+            button_hover_color=BTN_HOVER
+        )
         lang_menu.pack(side="right")
         
         lang_map = {
@@ -431,7 +438,14 @@ class FileOrganizerApp(ctk.CTk):
         f2 = ctk.CTkFrame(set_win, fg_color="transparent")
         f2.pack(fill="x", padx=40, pady=10)
         ctk.CTkLabel(f2, text="Theme:", text_color=TEXT_MAIN).pack(side="left")
-        theme_menu = ctk.CTkOptionMenu(f2, values=["Dark", "Light"], fg_color=BG_INPUT, text_color=TEXT_MAIN, button_color=BG_INPUT)
+        theme_menu = ctk.CTkOptionMenu(
+            f2, 
+            values=["Dark", "Light"], 
+            fg_color=BG_INPUT, 
+            text_color=TEXT_MAIN, 
+            button_color=BG_INPUT,
+            button_hover_color=BTN_HOVER
+        )
         theme_menu.pack(side="right")
         theme_menu.set(self.current_theme)
 
