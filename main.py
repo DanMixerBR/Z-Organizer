@@ -680,7 +680,17 @@ class FileOrganizerApp(ctk.CTk):
             rule_dict["current_key"] = opts_rev.get(choice)
             self.set_placeholder_by_key(rule_dict["current_key"], val_entry)
 
-        attr_menu = ctk.CTkOptionMenu(rule_frame, values=list(opts.values()), variable=attr_var, command=on_option_change, width=280, fg_color=BG_INPUT, text_color=TEXT_MAIN, button_color=BG_INPUT)
+        attr_menu = ctk.CTkOptionMenu(
+            rule_frame, 
+            values=list(opts.values()), 
+            variable=attr_var, 
+            command=on_option_change, 
+            width=280, 
+            fg_color=BG_INPUT, 
+            text_color=TEXT_MAIN, 
+            button_color=BG_INPUT,
+            button_hover_color=BTN_HOVER
+        )
         attr_menu.pack(side="left", padx=10, pady=10)
 
         val_entry = ctk.CTkEntry(rule_frame, placeholder_text=t["ph_name"], width=130, fg_color=BG_INPUT, text_color=TEXT_MAIN, border_width=1, border_color=COLOR_BORDER)
