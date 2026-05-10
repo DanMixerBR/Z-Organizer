@@ -570,6 +570,10 @@ class FileOrganizerApp(ctk.CTk):
                     if sha256_hash.hexdigest().lower() not in expected_hashes:
                         if os.path.exists(zip_path): os.remove(zip_path)
                         raise Exception("ERROR: Hash mismatch!")
+                else:
+                    if os.path.exists(zip_path): 
+                        os.remove(zip_path)
+                    raise Exception("Security Error: Could not download hash_v2.txt. Update aborted to ensure safety.")
                     
                 self.safe_ui(self.update_status_lbl.configure, text="Downloading update script... 75%")
                 self.safe_ui(self.update_progress.set, 0.75)
