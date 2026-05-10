@@ -520,7 +520,7 @@ class FileOrganizerApp(ctk.CTk):
         
         script_ext = "bat" if self.is_windows else "sh"
         script_url = f"https://raw.githubusercontent.com/DanMixerBR/Z-Organizer/refs/heads/main/update.{script_ext}"
-        hash_url = "https://raw.githubusercontent.com/DanMixerBR/Z-Organizer/refs/heads/main/hash_v2.txt"
+        hash_url = "https://raw.githubusercontent.com/DanMixerBR/Z-Organizer/refs/heads/main/hash.txt"
         zip_platform = "Z-Organizer_Windows.zip" if self.is_windows else "Z-Organizer_Linux.zip"
         
         try:
@@ -580,7 +580,7 @@ class FileOrganizerApp(ctk.CTk):
                 else:
                     if os.path.exists(zip_path): 
                         os.remove(zip_path)
-                    raise Exception(f"Security Error: Could not download hash_v2.txt to verify '{zip_platform}'. Update aborted to ensure safety.")
+                    raise Exception(f"Security Error: Could not download hash.txt to verify '{zip_platform}'. Update aborted to ensure safety.")
                     
                 self.safe_ui(self.update_status_lbl.configure, text="Downloading update script... 75%")
                 self.safe_ui(self.update_progress.set, 0.75)
