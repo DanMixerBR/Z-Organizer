@@ -497,13 +497,13 @@ class FileOrganizerApp(ctk.CTk):
         self.btn_update_app = ctk.CTkButton(btn_frame, text=LANGS[self.current_lang].get("btn_update", "Check for updates"), width=150, command=self.start_github_update, fg_color=ORANGE_MAIN, hover_color=ORANGE_HOVER)
         self.btn_update_app.pack(side="left", padx=10)
 
-    def status_update_error(self, filename=None, custom_msg=None):
-        f_name = filename if filename else "Update File"
-        error_msg = custom_msg if custom_msg else f"ERROR: The file '{f_name}' appears corrupted."
-        self.safe_ui(self.update_status_lbl.configure, text="Update Aborted!", text_color="#a94442")
+    def handle_update_failure(self, error_msg):
+        """Método unificado para relatar falhas na atualização."""
+        self.safe_ui(self.update_status_lbl.configure, text="Update Failed!", text_color="#a94442")
         self.safe_ui(self.update_progress.configure, progress_color="#a94442")
+        
         parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
-        self.safe_ui(messagebox.showerror, "Aborted", error_msg, parent=parent_win)
+        self.safe_ui(messagebox.showerror, "Update Error", error_msg, parent=parent_win)
 
     def start_github_update(self):
         self.btn_update_app.configure(state="disabled", text="Checking...")
@@ -551,13 +551,20 @@ class FileOrganizerApp(ctk.CTk):
                 else: r = requests.get(download_url_linux, timeout=30)
                 with open(zip_path, 'wb') as f: f.write(r.content)
                 
+                # --- TRAVA DE SEGURANÇA: TAMANHO MÍNIMO (Z-Organizer: 10MB) ---
+                zip_size_mb = os.path.getsize(zip_path) / (1024 * 1024)
+                if zip_size_mb < 10.0:
+                    if os.path.exists(zip_path): os.remove(zip_path)
+                    raise Exception(f"ERROR: The file '{zip_platform}' is suspiciously small ({zip_size_mb:.1f} MB). Update aborted.")
+                # -------------------------------------------------------------
+                
                 self.safe_ui(self.update_status_lbl.configure, text="Verifying file structure... 50%")
                 self.safe_ui(self.update_progress.set, 0.5)
                 
                 with zipfile.ZipFile(zip_path, 'r') as zf: corrupt_file = zf.testzip()
                 if corrupt_file is not None:
                     if os.path.exists(zip_path): os.remove(zip_path)
-                    raise Exception("ERROR: File structure is corrupted.")
+                    raise Exception(f"ERROR: The file '{zip_platform}' structure is corrupted.")
                 
                 self.safe_ui(self.update_status_lbl.configure, text="Verifying hash... 60%")
                 r_hash = requests.get(hash_url, timeout=10)
@@ -569,11 +576,11 @@ class FileOrganizerApp(ctk.CTk):
                             
                     if sha256_hash.hexdigest().lower() not in expected_hashes:
                         if os.path.exists(zip_path): os.remove(zip_path)
-                        raise Exception("ERROR: Hash mismatch!")
+                        raise Exception(f"Security Error: '{zip_platform}' failed Hash verification!")
                 else:
                     if os.path.exists(zip_path): 
                         os.remove(zip_path)
-                    raise Exception("Security Error: Could not download hash_v2.txt. Update aborted to ensure safety.")
+                    raise Exception(f"Security Error: Could not download hash_v2.txt to verify '{zip_platform}'. Update aborted to ensure safety.")
                     
                 self.safe_ui(self.update_status_lbl.configure, text="Downloading update script... 75%")
                 self.safe_ui(self.update_progress.set, 0.75)
@@ -618,13 +625,8 @@ class FileOrganizerApp(ctk.CTk):
                 self.safe_ui(self.update_progress.pack_forget)
         except Exception as e:
             self.is_updating = False
-            err_text = str(e)
-            if "File structure" in err_text or "Hash mismatch" in err_text:
-                self.safe_ui(self.status_update_error, zip_platform, custom_msg=err_text)
-            else:
-                parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
-                self.safe_ui(self.update_status_lbl.configure, text="Update Failed!", text_color="#a94442")
-                self.safe_ui(messagebox.showerror, "Error", e, parent=parent_win)
+            # Chama o método unificado passando a mensagem de erro que veio do "raise"
+            self.safe_ui(self.handle_update_failure, str(e))
         finally:
             if hasattr(self, 'about_win') and self.about_win.winfo_exists(): 
                 self.safe_ui(self.btn_update_app.configure, state="normal", text=LANGS[self.current_lang]["btn_update"])
