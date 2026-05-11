@@ -414,37 +414,47 @@ class FileOrganizerApp(ctk.CTk):
 
         ctk.CTkLabel(set_win, text=LANGS[self.current_lang]["settings"], font=("Segoe UI", 18, "bold"), text_color=TEXT_MAIN).pack(pady=20)
 
-        f1 = ctk.CTkFrame(set_win, fg_color="transparent")
-        f1.pack(fill="x", padx=40, pady=10)
-        ctk.CTkLabel(f1, text="Language:", text_color=TEXT_MAIN).pack(side="left")
-        lang_menu = ctk.CTkOptionMenu(
-            f1, 
-            values=["English", "Português", "Español", "Français", "Deutsch", "Italiano", "日本語", "한국어", "Русский"], 
-            fg_color=BG_INPUT, 
-            text_color=TEXT_MAIN, 
-            button_color=BG_INPUT,
-            button_hover_color=BTN_HOVER
-        )
-        lang_menu.pack(side="right")
-        
-        lang_map = {
+        master_lang_map = {
             "en": "English", "pt": "Português", "es": "Español", 
             "fr": "Français", "de": "Deutsch", "it": "Italiano", 
             "ja": "日本語", "ko": "한국어", "ru": "Русский"
         }
+        
+        # Só cria as opções se a sigla (k) existir no dicionário LANGS carregado!
+        lang_map = {k: master_lang_map[k] for k in LANGS.keys() if k in master_lang_map}
         rev_lang_map = {v: k for k, v in lang_map.items()}
-        lang_menu.set(lang_map[self.current_lang])
+
+        f1 = ctk.CTkFrame(set_win, fg_color="transparent")
+        f1.pack(fill="x", padx=40, pady=10)
+        ctk.CTkLabel(f1, text="Language:", text_color=TEXT_MAIN).pack(side="left")
+        
+        lang_menu = ctk.CTkOptionMenu(
+            f1, 
+            values=list(lang_map.values()),   # <--- LISTA DINÂMICA
+            fg_color=BG_INPUT, 
+            text_color=TEXT_MAIN, 
+            button_color=BG_INPUT,
+            button_hover_color=BTN_HOVER,     
+            dropdown_hover_color=BTN_HOVER    
+        )
+        lang_menu.pack(side="right")
+        
+        # Trava de segurança: Se o idioma salvo não existir mais, volta pro Inglês
+        safe_lang = self.current_lang if self.current_lang in lang_map else "en"
+        lang_menu.set(lang_map[safe_lang])
 
         f2 = ctk.CTkFrame(set_win, fg_color="transparent")
         f2.pack(fill="x", padx=40, pady=10)
         ctk.CTkLabel(f2, text="Theme:", text_color=TEXT_MAIN).pack(side="left")
+        
         theme_menu = ctk.CTkOptionMenu(
             f2, 
             values=["Dark", "Light"], 
             fg_color=BG_INPUT, 
             text_color=TEXT_MAIN, 
             button_color=BG_INPUT,
-            button_hover_color=BTN_HOVER
+            button_hover_color=BTN_HOVER,     
+            dropdown_hover_color=BTN_HOVER    
         )
         theme_menu.pack(side="right")
         theme_menu.set(self.current_theme)
@@ -455,6 +465,13 @@ class FileOrganizerApp(ctk.CTk):
             ctk.set_appearance_mode(self.current_theme)
             self.update_texts()
             
+            # ==============================================================
+            # 2. PROTEÇÃO ANTI-QUEBRA DE DIRETÓRIO
+            # ==============================================================
+            config_dir = os.path.dirname(self.config_file)
+            if not os.path.exists(config_dir):
+                os.makedirs(config_dir, exist_ok=True) # Cria a pasta bin se ela não existir
+                
             with open(self.config_file, "w") as f:
                 json.dump({"lang": self.current_lang, "theme": self.current_theme}, f)
             set_win.destroy()
@@ -511,10 +528,51 @@ class FileOrganizerApp(ctk.CTk):
         self.update_progress.pack(fill="x", pady=(0, 10))
         self.update_progress.set(0)
         self.update_status_lbl.configure(text="Checking for updates...", text_color=TEXT_MAIN)
-        threading.Thread(target=self.perform_github_update, daemon=True).start()
+        
+        # FASE 1: Vai pros bastidores apenas checar a versão na API
+        threading.Thread(target=self.check_github_version_task, daemon=True).start()
 
-    def perform_github_update(self):
+    def check_github_version_task(self):
         api_url = "https://api.github.com/repos/DanMixerBR/Z-Organizer/releases/latest"
+        try:
+            local_v = self.get_local_version()
+            response = requests.get(api_url, timeout=10)
+            remote_v = response.json().get('tag_name', 'v0.0')
+            clean_remote_v = ''.join(filter(lambda x: x.isdigit() or x == '.', remote_v))
+            
+            if clean_remote_v != local_v:
+                # O SEGREDO DO ASKYYESNO: Envia a pergunta para a Interface Principal com segurança
+                self.safe_ui(self.prompt_user_update, local_v, clean_remote_v)
+            else:
+                self.is_updating = False
+                parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
+                self.safe_ui(messagebox.showinfo, "Up to date", "You are already using the latest version.", parent=parent_win)
+                self.safe_ui(self.update_status_lbl.configure, text="")
+                self.safe_ui(self.update_progress.pack_forget)
+                self.safe_ui(self.btn_update_app.configure, state="normal", text=LANGS[self.current_lang].get("btn_update", "Check for updates"))
+
+        except Exception as e:
+            self.is_updating = False
+            self.safe_ui(self.handle_update_failure, str(e))
+            self.safe_ui(self.btn_update_app.configure, state="normal", text=LANGS[self.current_lang].get("btn_update", "Check for updates"))
+
+    def prompt_user_update(self, local_v, clean_remote_v):
+        # FASE 2: Pergunta na UI Principal (A Thread só avança com a resposta)
+        msg = f"Current version: {local_v}\nLatest version: {clean_remote_v}\n\nDo you want to update?"
+        parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
+        
+        if messagebox.askyesno("Update available", msg, parent=parent_win):
+            self.update_status_lbl.configure(text="Preparing update...", text_color=TEXT_MAIN)
+            # Se aceitou, volta para os bastidores para fazer o download (Sem travar a GUI!)
+            threading.Thread(target=self.download_and_install_task, daemon=True).start()
+        else:
+            self.is_updating = False
+            self.update_status_lbl.configure(text="Update cancelled.")
+            self.update_progress.pack_forget()
+            self.btn_update_app.configure(state="normal", text=LANGS[self.current_lang].get("btn_update", "Check for updates"))
+
+    def download_and_install_task(self):
+        # FASE 3: O Download Robusto em Stream (Baixo uso de RAM)
         download_url_windows = "https://github.com/DanMixerBR/Z-Organizer/releases/latest/download/Z-Organizer_Windows.zip"
         download_url_linux = "https://github.com/DanMixerBR/Z-Organizer/releases/latest/download/Z-Organizer_Linux.zip"
         
@@ -523,76 +581,73 @@ class FileOrganizerApp(ctk.CTk):
         hash_url = "https://raw.githubusercontent.com/DanMixerBR/Z-Organizer/refs/heads/main/hash.txt"
         zip_platform = "Z-Organizer_Windows.zip" if self.is_windows else "Z-Organizer_Linux.zip"
         
+        dir_app = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
+        script_path = os.path.join(dir_app, f"update.{script_ext}")
+        zip_path = os.path.join(dir_app, zip_platform)
+        
         try:
-            local_v = self.get_local_version()
-            response = requests.get(api_url, timeout=10)
-            remote_v = response.json().get('tag_name', 'v0.0')
-            clean_remote_v = ''.join(filter(lambda x: x.isdigit() or x == '.', remote_v))
+            if os.path.exists(zip_path): os.remove(zip_path)
+                
+            self.safe_ui(self.update_status_lbl.configure, text="Downloading update file... 25%", text_color=TEXT_MAIN)
+            self.safe_ui(self.update_progress.set, 0.25)
             
-            if clean_remote_v != local_v:
-                msg = f"Current version: {local_v}\nLatest version: {clean_remote_v}\n\nDo you want to update?"
-                parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
-                if not messagebox.askyesno("Update available", msg, parent=parent_win):
-                    self.is_updating = False
-                    self.safe_ui(self.update_status_lbl.configure, text="Update cancelled.")
-                    self.safe_ui(self.btn_update_app.configure, state="normal", text=LANGS[self.current_lang]["btn_update"])
-                    return
-
-                dir_app = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
-                script_path = os.path.join(dir_app, f"update.{script_ext}")
-                zip_path = os.path.join(dir_app, zip_platform)
-                
+            target_url = download_url_windows if self.is_windows else download_url_linux
+            
+            # OTIMIZAÇÃO DE RAM: Stream de 8KB!
+            r = requests.get(target_url, stream=True, timeout=30)
+            r.raise_for_status()
+            with open(zip_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk: f.write(chunk)
+            
+            # Trava de Segurança Mínima: 10MB para o Z-Organizer
+            zip_size_mb = os.path.getsize(zip_path) / (1024 * 1024)
+            if zip_size_mb < 10.0:
                 if os.path.exists(zip_path): os.remove(zip_path)
-                    
-                self.safe_ui(self.update_status_lbl.configure, text="Downloading update file... 25%", text_color=TEXT_MAIN)
-                self.safe_ui(self.update_progress.set, 0.25)
-                
-                if self.is_windows: r = requests.get(download_url_windows, timeout=30)
-                else: r = requests.get(download_url_linux, timeout=30)
-                with open(zip_path, 'wb') as f: f.write(r.content)
-                
-                # --- TRAVA DE SEGURANÇA: TAMANHO MÍNIMO (Z-Organizer: 10MB) ---
-                zip_size_mb = os.path.getsize(zip_path) / (1024 * 1024)
-                if zip_size_mb < 10.0:
+                raise Exception(f"ERROR: The file '{zip_platform}' is suspiciously small ({zip_size_mb:.1f} MB). Update aborted.")
+            
+            self.safe_ui(self.update_status_lbl.configure, text="Verifying file structure... 50%")
+            self.safe_ui(self.update_progress.set, 0.5)
+            
+            with zipfile.ZipFile(zip_path, 'r') as zf: 
+                corrupt_file = zf.testzip()
+            
+            if corrupt_file is not None:
+                if os.path.exists(zip_path): os.remove(zip_path)
+                raise Exception(f"ERROR: The file '{zip_platform}' structure is corrupted.")
+            
+            self.safe_ui(self.update_status_lbl.configure, text="Verifying hash... 60%")
+            r_hash = requests.get(hash_url, timeout=10)
+            if r_hash.status_code == 200:
+                expected_hashes = [line.strip().lower().replace("sha256:", "") for line in r_hash.text.splitlines() if line.strip()]
+                sha256_hash = hashlib.sha256()
+                with open(zip_path, "rb") as f:
+                    for byte_block in iter(lambda: f.read(4096), b""): 
+                        sha256_hash.update(byte_block)
+                        
+                if sha256_hash.hexdigest().lower() not in expected_hashes:
                     if os.path.exists(zip_path): os.remove(zip_path)
-                    raise Exception(f"ERROR: The file '{zip_platform}' is suspiciously small ({zip_size_mb:.1f} MB). Update aborted.")
-                # -------------------------------------------------------------
+                    raise Exception(f"Security Error: '{zip_platform}' failed Hash verification!")
+            else:
+                if os.path.exists(zip_path): os.remove(zip_path)
+                raise Exception(f"Security Error: Could not download hash.txt to verify '{zip_platform}'.")
                 
-                self.safe_ui(self.update_status_lbl.configure, text="Verifying file structure... 50%")
-                self.safe_ui(self.update_progress.set, 0.5)
-                
-                with zipfile.ZipFile(zip_path, 'r') as zf: corrupt_file = zf.testzip()
-                if corrupt_file is not None:
-                    if os.path.exists(zip_path): os.remove(zip_path)
-                    raise Exception(f"ERROR: The file '{zip_platform}' structure is corrupted.")
-                
-                self.safe_ui(self.update_status_lbl.configure, text="Verifying hash... 60%")
-                r_hash = requests.get(hash_url, timeout=10)
-                if r_hash.status_code == 200:
-                    expected_hashes = [line.strip().lower().replace("sha256:", "") for line in r_hash.text.splitlines() if line.strip()]
-                    sha256_hash = hashlib.sha256()
-                    with open(zip_path, "rb") as f:
-                        for byte_block in iter(lambda: f.read(4096), b""): sha256_hash.update(byte_block)
-                            
-                    if sha256_hash.hexdigest().lower() not in expected_hashes:
-                        if os.path.exists(zip_path): os.remove(zip_path)
-                        raise Exception(f"Security Error: '{zip_platform}' failed Hash verification!")
-                else:
-                    if os.path.exists(zip_path): 
-                        os.remove(zip_path)
-                    raise Exception(f"Security Error: Could not download hash.txt to verify '{zip_platform}'. Update aborted to ensure safety.")
-                    
-                self.safe_ui(self.update_status_lbl.configure, text="Downloading update script... 75%")
-                self.safe_ui(self.update_progress.set, 0.75)
-                
-                r_script = requests.get(script_url, timeout=10)
-                if r_script.status_code == 200:
-                    with open(script_path, 'wb') as f: f.write(r_script.content)
-                else: raise Exception(f"Could not download update.{script_ext}")
-                
-                self.safe_ui(self.update_status_lbl.configure, text="Update Ready! (100%)", text_color=ORANGE_MAIN[0])
-                self.safe_ui(self.update_progress.set, 1)
-                
+            self.safe_ui(self.update_status_lbl.configure, text="Downloading update script... 75%")
+            self.safe_ui(self.update_progress.set, 0.75)
+            
+            r_script = requests.get(script_url, timeout=10)
+            if r_script.status_code == 200:
+                with open(script_path, 'wb') as f: f.write(r_script.content)
+            else: 
+                raise Exception(f"Could not download update.{script_ext}")
+            
+            self.safe_ui(self.update_status_lbl.configure, text="Update Ready! (100%)", text_color=ORANGE_MAIN[0])
+            self.safe_ui(self.update_progress.set, 1)
+
+            # =====================================================================
+            # O SEGREDO DO SHOWINFO: Empacotado para fechar somente após o 'OK'
+            # =====================================================================
+            def finish_update_and_restart():
                 parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
                 messagebox.showinfo("Success", "Update Ready! The app will close to complete the update.", parent=parent_win)
                 
@@ -616,20 +671,15 @@ class FileOrganizerApp(ctk.CTk):
                         if not abriu_terminal:
                             subprocess.Popen(['bash', script_path], env=limpo_env, start_new_session=True)
                     
-                    os._exit(0)
-            else:
-                self.is_updating = False
-                parent_win = self.about_win if (hasattr(self, 'about_win') and self.about_win.winfo_exists()) else self
-                self.safe_ui(messagebox.showinfo, "Up to date", "You are already using the latest version.", parent=parent_win)
-                self.safe_ui(self.update_status_lbl.configure, text="")
-                self.safe_ui(self.update_progress.pack_forget)
+                os._exit(0)
+
+            # Envia a ordem final e segura para a Interface!
+            self.safe_ui(finish_update_and_restart)
+
         except Exception as e:
             self.is_updating = False
-            # Chama o método unificado passando a mensagem de erro que veio do "raise"
             self.safe_ui(self.handle_update_failure, str(e))
-        finally:
-            if hasattr(self, 'about_win') and self.about_win.winfo_exists(): 
-                self.safe_ui(self.btn_update_app.configure, state="normal", text=LANGS[self.current_lang]["btn_update"])
+            self.safe_ui(self.btn_update_app.configure, state="normal", text=LANGS[self.current_lang].get("btn_update", "Check for updates"))
 
     def load_config(self):
         if os.path.exists(self.config_file):
