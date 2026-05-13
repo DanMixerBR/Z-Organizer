@@ -146,6 +146,7 @@ class FileOrganizerApp(ctk.CTk):
 
         self.title("Z-Organizer")
         self.center_window(self, 850, 670)
+        self.minsize(850, 670)
         self.resizable(True, True)
         self.configure(fg_color=BG_APP)
         self.is_windows = os.name == 'nt'
