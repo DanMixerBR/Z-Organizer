@@ -151,6 +151,23 @@ class FileOrganizerApp(ctk.CTk):
         self.configure(fg_color=BG_APP)
         self.is_windows = os.name == 'nt'
         self.apply_window_icon(self)
+
+        # ===================================================
+        # [LINUX/MAC FIX] DETECÇÃO DE SISTEMA OPERACIONAL
+        # ===================================================
+        self.linux_dialog_tool = None
+        if not self.is_windows:
+            desktop = os.environ.get("XDG_CURRENT_DESKTOP", "").lower()
+            # Se for KDE Plasma, a prioridade absoluta é o Kdialog (Abre instantaneamente)
+            if "kde" in desktop and shutil.which("kdialog"):
+                self.linux_dialog_tool = "kdialog"
+            # Se for GNOME/Outros, a prioridade é o Zenity
+            elif shutil.which("zenity"):
+                self.linux_dialog_tool = "zenity"
+            elif shutil.which("kdialog"):
+                self.linux_dialog_tool = "kdialog"
+            else:
+                self.linux_dialog_tool = "tkinter"
         
         self.source_folder = ctk.StringVar(value="")
         self.rules = []
@@ -700,21 +717,16 @@ class FileOrganizerApp(ctk.CTk):
         clean_env.pop("LD_LIBRARY_PATH", None)
         clean_env.pop("GTK_PATH", None)
         
-        # Linux - Attempt 1: Zenity (GNOME/Fedora/Ubuntu)
-        try:
+        # Vai direto na ferramenta certa sem tentar e falhar!
+        if self.linux_dialog_tool == "zenity":
             res = subprocess.run(['zenity', '--file-selection', '--directory', f'--title={title}'], capture_output=True, text=True, env=clean_env)
-            if res.returncode == 0: return res.stdout.strip()
-            if res.returncode == 1: return "" # User clicked Cancel
-        except FileNotFoundError: pass
-        
-        # Linux - Attempt 2: kdialog (KDE Plasma)
-        try:
+            return res.stdout.strip() if res.returncode == 0 else ""
+            
+        elif self.linux_dialog_tool == "kdialog":
             res = subprocess.run(['kdialog', '--getexistingdirectory', '/', '--title', title], capture_output=True, text=True, env=clean_env)
-            if res.returncode == 0: return res.stdout.strip()
-            if res.returncode == 1: return "" 
-        except FileNotFoundError: pass
-        
-        # Linux - Safe Fallback: Tkinter Dinosaur Dialog
+            return res.stdout.strip() if res.returncode == 0 else ""
+            
+        # Fallback de segurança: Tkinter Dinosaur Dialog
         return filedialog.askdirectory(parent=self, title=title)
 
     def browse_source(self):
