@@ -606,17 +606,39 @@ class FileOrganizerApp(ctk.CTk):
         try:
             if os.path.exists(zip_path): os.remove(zip_path)
                 
-            self.safe_ui(self.update_status_lbl.configure, text="Downloading update file... 25%", text_color=TEXT_MAIN)
-            self.safe_ui(self.update_progress.set, 0.25)
+            # 1. Início
+            self.safe_ui(self.update_status_lbl.configure, text="Starting update...", text_color=TEXT_MAIN)
+            self.safe_ui(self.update_progress.set, 0.0)
             
             target_url = download_url_windows if self.is_windows else download_url_linux
             
-            # OTIMIZAÇÃO DE RAM: Stream de 8KB!
+            # Puxa o cabeçalho do arquivo
             r = requests.get(target_url, stream=True, timeout=30)
             r.raise_for_status()
+            
+            # 2. Pega o tamanho total do arquivo
+            total_size = int(r.headers.get('content-length', 0))
+            downloaded_size = 0
+            last_reported_progress = 0.0
+            
+            # 3. Download em Stream com atualização em tempo real (0 a 50%)
             with open(zip_path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
-                    if chunk: f.write(chunk)
+                    if chunk: 
+                        f.write(chunk)
+                        if total_size > 0:
+                            downloaded_size += len(chunk)
+                            download_percent = downloaded_size / total_size
+                            
+                            # Mapeia para a metade da barra (0.0 a 0.5)
+                            actual_progress = download_percent * 0.5
+                            
+                            # Só atualiza a tela a cada 1% para não travar a interface!
+                            if actual_progress - last_reported_progress >= 0.01 or downloaded_size == total_size:
+                                display_percent = int(actual_progress * 100)
+                                self.safe_ui(self.update_status_lbl.configure, text=f"Downloading update... {display_percent}%")
+                                self.safe_ui(self.update_progress.set, actual_progress)
+                                last_reported_progress = actual_progress
             
             # Trava de Segurança Mínima: 10MB para o Z-Organizer
             zip_size_mb = os.path.getsize(zip_path) / (1024 * 1024)
@@ -624,7 +646,8 @@ class FileOrganizerApp(ctk.CTk):
                 if os.path.exists(zip_path): os.remove(zip_path)
                 raise Exception(f"ERROR: The file '{zip_platform}' is suspiciously small ({zip_size_mb:.1f} MB). Update aborted.")
             
-            self.safe_ui(self.update_status_lbl.configure, text="Verifying file structure... 50%")
+            # 4. Verificação (Hash e Zip)
+            self.safe_ui(self.update_status_lbl.configure, text="Verifying update... 50%")
             self.safe_ui(self.update_progress.set, 0.5)
             
             with zipfile.ZipFile(zip_path, 'r') as zf: 
@@ -634,7 +657,6 @@ class FileOrganizerApp(ctk.CTk):
                 if os.path.exists(zip_path): os.remove(zip_path)
                 raise Exception(f"ERROR: The file '{zip_platform}' structure is corrupted.")
             
-            self.safe_ui(self.update_status_lbl.configure, text="Verifying hash... 60%")
             r_hash = requests.get(hash_url, timeout=10)
             if r_hash.status_code == 200:
                 expected_hashes = [line.strip().lower().replace("sha256:", "") for line in r_hash.text.splitlines() if line.strip()]
@@ -650,7 +672,8 @@ class FileOrganizerApp(ctk.CTk):
                 if os.path.exists(zip_path): os.remove(zip_path)
                 raise Exception(f"Security Error: Could not download hash.txt to verify '{zip_platform}'.")
                 
-            self.safe_ui(self.update_status_lbl.configure, text="Downloading update script... 75%")
+            # 5. Preparação (Baixando o script de atualização)
+            self.safe_ui(self.update_status_lbl.configure, text="Preparing update... 75%")
             self.safe_ui(self.update_progress.set, 0.75)
             
             r_script = requests.get(script_url, timeout=10)
@@ -659,8 +682,9 @@ class FileOrganizerApp(ctk.CTk):
             else: 
                 raise Exception(f"Could not download update.{script_ext}")
             
+            # 6. Conclusão
             self.safe_ui(self.update_status_lbl.configure, text="Update Ready! (100%)", text_color=ORANGE_MAIN[0])
-            self.safe_ui(self.update_progress.set, 1)
+            self.safe_ui(self.update_progress.set, 1.0)
 
             # =====================================================================
             # O SEGREDO DO SHOWINFO: Empacotado para fechar somente após o 'OK'
