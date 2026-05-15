@@ -452,8 +452,7 @@ class FileOrganizerApp(ctk.CTk):
             fg_color=BG_INPUT, 
             text_color=TEXT_MAIN, 
             button_color=BG_INPUT,
-            button_hover_color=BTN_HOVER,     
-            dropdown_hover_color=BTN_HOVER    
+            button_hover_color=BTN_HOVER    
         )
         lang_menu.pack(side="right")
         
@@ -471,8 +470,7 @@ class FileOrganizerApp(ctk.CTk):
             fg_color=BG_INPUT, 
             text_color=TEXT_MAIN, 
             button_color=BG_INPUT,
-            button_hover_color=BTN_HOVER,     
-            dropdown_hover_color=BTN_HOVER    
+            button_hover_color=BTN_HOVER   
         )
         theme_menu.pack(side="right")
         theme_menu.set(self.current_theme)
@@ -782,8 +780,7 @@ class FileOrganizerApp(ctk.CTk):
             fg_color=BG_INPUT, 
             text_color=TEXT_MAIN, 
             button_color=BG_INPUT,
-            button_hover_color=BTN_HOVER,
-            dropdown_hover_color=BTN_HOVER
+            button_hover_color=BTN_HOVER
         )
         attr_menu.pack(side="left", padx=10, pady=10)
 
