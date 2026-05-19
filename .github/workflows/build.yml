@@ -132,8 +132,16 @@ jobs:
         run: |
           HASH_WIN=$(sha256sum ./downloads/Z-Organizer_Windows.zip | awk '{ print $1 }')
           HASH_LINUX=$(sha256sum ./downloads/Z-Organizer_Linux.zip | awk '{ print $1 }')
-          echo "$HASH_WIN" > hash.txt
-          echo "$HASH_LINUX" >> hash.txt
+          
+          # Calcula o hash dos scripts de atualização nativos
+          HASH_BAT=$(sha256sum update.bat | awk '{ print $1 }')
+          HASH_SH=$(sha256sum update.sh | awk '{ print $1 }')
+          
+          # Sobrescreve o hash_v2.txt com o prefixo 'sha256:' para maior clareza e segurança
+          echo "sha256:$HASH_WIN" > hash.txt
+          echo "sha256:$HASH_LINUX" >> hash.txt
+          echo "sha256:$HASH_BAT" >> hash.txt
+          echo "sha256:$HASH_SH" >> hash.txt
           
           # Igual ao CopynDown: garante que o version.txt da raiz do GitHub também fique atualizado!
           mkdir -p bin
