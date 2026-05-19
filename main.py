@@ -553,9 +553,23 @@ class FileOrganizerApp(ctk.CTk):
         try:
             local_v = self.get_local_version()
             response = requests.get(api_url, timeout=10)
-            remote_v = response.json().get('tag_name', 'v0.0')
+            
+            # Trava 1: API recusou a conexão (Rate Limit, Erro de Servidor, etc)
+            response.raise_for_status() 
+            
+            data = response.json()
+            remote_v = data.get('tag_name')
+            
+            # Trava 2: API respondeu 200 OK, mas o pacote não tem a tag de versão
+            if not remote_v:
+                raise Exception("Could not detect latest version from GitHub API payload.")
+
             clean_remote_v = ''.join(filter(lambda x: x.isdigit() or x == '.', remote_v))
             
+            # Trava 3: A tag da versão existe, mas está num formato alienígena sem números
+            if not clean_remote_v:
+                raise Exception("Invalid version format received from GitHub API.")
+
             if clean_remote_v != local_v:
                 # O SEGREDO DO ASKYYESNO: Envia a pergunta para a Interface Principal com segurança
                 self.safe_ui(self.prompt_user_update, local_v, clean_remote_v)
@@ -675,10 +689,22 @@ class FileOrganizerApp(ctk.CTk):
             self.safe_ui(self.update_progress.set, 0.75)
             
             r_script = requests.get(script_url, timeout=10)
-            if r_script.status_code == 200:
-                with open(script_path, 'wb') as f: f.write(r_script.content)
-            else: 
-                raise Exception(f"Could not download update.{script_ext}")
+            r_script.raise_for_status()
+
+            # Reutiliza o mesmo hash.txt já baixado anteriormente
+            expected_hashes = [
+                line.strip().lower().replace("sha256:", "")
+                for line in r_hash.text.splitlines()
+                if line.strip()
+            ]
+
+            script_hash = hashlib.sha256(r_script.content).hexdigest().lower()
+
+            if script_hash not in expected_hashes:
+                raise Exception(f"Security Error: update.{script_ext} failed Hash verification!")
+
+            with open(script_path, 'wb') as f:
+                f.write(r_script.content)
             
             # 6. Conclusão
             self.safe_ui(self.update_status_lbl.configure, text="Update Ready! (100%)", text_color=ORANGE_MAIN[0])
@@ -818,12 +844,16 @@ class FileOrganizerApp(ctk.CTk):
                 os.rmdir(dir_path) 
         except: pass
 
-    def remove_empty_folders(self, path):
-        if not os.path.exists(path): return
+    def remove_empty_folders(self, path, remove_root=False):
+        if not os.path.exists(path):
+            return
+            
         for root, dirs, files in os.walk(path, topdown=False):
             for dir_name in dirs:
                 self._force_rmdir(os.path.join(root, dir_name))
-        self._force_rmdir(path)
+        
+        if remove_root:
+            self._force_rmdir(path)
 
     def snapshot_dirs(self, src):
         dir_set = set()
@@ -931,7 +961,7 @@ class FileOrganizerApp(ctk.CTk):
                     except: pass
 
             created_dirs.sort(key=len, reverse=True)
-            for d in created_dirs: self.remove_empty_folders(d)
+            for d in created_dirs: self.remove_empty_folders(d, remove_root=True)
 
             os.remove(self.undo_file)
         finally:
