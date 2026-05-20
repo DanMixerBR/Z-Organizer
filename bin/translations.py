@@ -2,7 +2,7 @@
 
 EXTRA_LANGS = {
     "pt": {
-        "title": "Z-Organizer", "sub": "Gerenciamento Inteligente de Arquivos", "settings": "⚙ Config.", "about": "ℹ Sobre",
+        "title": "Zarfolder", "sub": "Gerenciamento Inteligente de Arquivos", "settings": "⚙ Config.", "about": "ℹ Sobre",
         "s1": "1. Selecione a Pasta", "browse": "Procurar", "ph_src": "Escolha a pasta bagunçada...",
         "s2": "2. Classificação Automática (Marque para ativar)",
         "t_type": "Tipo (Vídeos, Músicas...)", "t_date_c": "Data de Criação", "t_date_m": "Data de Modificação", "t_size": "Tamanho (P, M, G)", "t_name": "Nome (A-Z)", 
@@ -25,7 +25,7 @@ EXTRA_LANGS = {
         "load_sim": "Simulando organização...\nPor favor, aguarde.", "load_undo": "Restaurando arquivos...\nPor favor, aguarde."
     },
     "es": {
-        "title": "Z-Organizer", "sub": "Gestión Inteligente de Archivos", "settings": "⚙ Ajustes", "about": "ℹ Acerca de",
+        "title": "Zarfolder", "sub": "Gestión Inteligente de Archivos", "settings": "⚙ Ajustes", "about": "ℹ Acerca de",
         "s1": "1. Seleccione la Carpeta", "browse": "Buscar", "ph_src": "Elija la carpeta desordenada...",
         "s2": "2. Clasificación Automática (Marcar para activar)",
         "t_type": "Tipo (Videos, Música...)", "t_date_c": "Fecha de Creación", "t_date_m": "Fecha de Modificación", "t_size": "Tamaño (P, M, G)", "t_name": "Nombre (A-Z)", 
@@ -48,7 +48,7 @@ EXTRA_LANGS = {
         "load_sim": "Simulando organización...\nPor favor, espere.", "load_undo": "Restaurando archivos...\nPor favor, espere."
     },
     "fr": {
-        "title": "Z-Organizer", "sub": "Gestion Intelligente des Fichiers", "settings": "⚙ Paramètres", "about": "ℹ À propos",
+        "title": "Zarfolder", "sub": "Gestion Intelligente des Fichiers", "settings": "⚙ Paramètres", "about": "ℹ À propos",
         "s1": "1. Sélectionner le dossier", "browse": "Parcourir", "ph_src": "Choisissez le dossier en désordre...",
         "s2": "2. Classification Automatique (Cocher pour activer)",
         "t_type": "Type (Vidéos, Musique...)", "t_date_c": "Date de création", "t_date_m": "Date de modification", "t_size": "Taille (Petit, Moy...)", "t_name": "Nom (A-Z)", 
@@ -71,7 +71,7 @@ EXTRA_LANGS = {
         "load_sim": "Simulation de l'organisation...\nVeuillez patienter.", "load_undo": "Restauration des fichiers...\nVeuillez patienter."
     },
     "de": {
-        "title": "Z-Organizer", "sub": "Intelligente Dateiverwaltung", "settings": "⚙ Einstellungen", "about": "ℹ Über",
+        "title": "Zarfolder", "sub": "Intelligente Dateiverwaltung", "settings": "⚙ Einstellungen", "about": "ℹ Über",
         "s1": "1. Ordner auswählen", "browse": "Durchsuchen", "ph_src": "Wählen Sie den unordentlichen Ordner...",
         "s2": "2. Automatische Klassifizierung (Aktivieren)",
         "t_type": "Typ (Videos, Musik...)", "t_date_c": "Erstellungsdatum", "t_date_m": "Änderungsdatum", "t_size": "Größe (Klein, Mit...)", "t_name": "Name (A-Z)", 
@@ -94,7 +94,7 @@ EXTRA_LANGS = {
         "load_sim": "Organisation wird simuliert...\nBitte warten.", "load_undo": "Dateien werden wiederhergestellt...\nBitte warten."
     },
     "it": {
-        "title": "Z-Organizer", "sub": "Gestione Intelligente dei File", "settings": "⚙ Impostazioni", "about": "ℹ Informazioni",
+        "title": "Zarfolder", "sub": "Gestione Intelligente dei File", "settings": "⚙ Impostazioni", "about": "ℹ Informazioni",
         "s1": "1. Seleziona la cartella", "browse": "Sfoglia", "ph_src": "Scegli la cartella disordinata...",
         "s2": "2. Classificazione Automatica (Spunta per attivare)",
         "t_type": "Tipo (Video, Musica...)", "t_date_c": "Data di creazione", "t_date_m": "Data di modifica", "t_size": "Dimens. (Pic, Med...)", "t_name": "Nome (A-Z)", 
@@ -117,7 +117,7 @@ EXTRA_LANGS = {
         "load_sim": "Simulazione in corso...\nAttendere prego.", "load_undo": "Ripristino dei file...\nAttendere prego."
     },
     "ja": {
-        "title": "Z-Organizer", "sub": "スマートなファイル管理", "settings": "⚙ 設定", "about": "ℹ 概要",
+        "title": "Zarfolder", "sub": "スマートなファイル管理", "settings": "⚙ 設定", "about": "ℹ 概要",
         "s1": "1. 整理するフォルダを選択", "browse": "参照", "ph_src": "散らかったフォルダを選択...",
         "s2": "2. 自動分類 (チェックして有効化)",
         "t_type": "種類 (動画、音楽...)", "t_date_c": "作成日", "t_date_m": "更新日", "t_size": "サイズ (小, 中, 大)", "t_name": "名前 (A-Z)", 
@@ -140,7 +140,7 @@ EXTRA_LANGS = {
         "load_sim": "整理をシミュレートしています...\nお待ちください。", "load_undo": "ファイルを復元しています...\nお待ちください。"
     },
     "ko": {
-        "title": "Z-Organizer", "sub": "스마트 파일 관리", "settings": "⚙ 설정", "about": "ℹ 정보",
+        "title": "Zarfolder", "sub": "스마트 파일 관리", "settings": "⚙ 설정", "about": "ℹ 정보",
         "s1": "1. 정리할 폴더 선택", "browse": "찾아보기", "ph_src": "지저분한 폴더를 선택하세요...",
         "s2": "2. 자동 분류 (체크하여 활성화)",
         "t_type": "유형 (동영상, 음악...)", "t_date_c": "생성일", "t_date_m": "수정일", "t_size": "크기 (소, 중, 대)", "t_name": "이름 (A-Z)", 
@@ -163,7 +163,7 @@ EXTRA_LANGS = {
         "load_sim": "정리 시뮬레이션 중...\n잠시만 기다려주세요.", "load_undo": "파일을 복원하는 중...\n잠시만 기다려주세요."
     },
     "ru": {
-        "title": "Z-Organizer", "sub": "Умное управление файлами", "settings": "⚙ Настройки", "about": "ℹ О программе",
+        "title": "Zarfolder", "sub": "Умное управление файлами", "settings": "⚙ Настройки", "about": "ℹ О программе",
         "s1": "1. Выберите папку для сортировки", "browse": "Обзор", "ph_src": "Выберите папку...",
         "s2": "2. Автоматическая классификация (Включить)",
         "t_type": "Тип (Видео, Музыка...)", "t_date_c": "Дата создания", "t_date_m": "Дата изменения", "t_size": "Размер (Мал, Ср...)", "t_name": "Имя (А-Я)", 
