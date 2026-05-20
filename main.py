@@ -96,7 +96,7 @@ CODE_EXTENSIONS = {
 # ==========================================
 LANGS = {
     "en": {
-        "title": "Z-Organizer", "sub": "Smart File Management", "settings": "⚙ Settings", "about": "ℹ About",
+        "title": "Zarfolder", "sub": "Smart File Management", "settings": "⚙ Settings", "about": "ℹ About",
         "s1": "1. Select Folder to Organize", "browse": "Browse", "ph_src": "Choose the messy folder...",
         "s2": "2. Automatic Classification (Check to enable)",
         "t_type": "Type (Videos, Music...)", "t_date_c": "Creation Date", "t_date_m": "Modified Date", "t_size": "Size (Small, Med...)", "t_name": "Name (A-Z)", 
@@ -144,7 +144,7 @@ class FileOrganizerApp(ctk.CTk):
         self.load_config()
         ctk.set_appearance_mode(self.current_theme)
 
-        self.title("Z-Organizer")
+        self.title("Zarfolder")
         self.center_window(self, 850, 670)
         self.minsize(850, 670)
         self.resizable(True, True)
@@ -508,7 +508,7 @@ class FileOrganizerApp(ctk.CTk):
         scroll_frame = ctk.CTkScrollableFrame(self.about_win, width=580, height=350, fg_color="transparent")
         scroll_frame.pack(padx=20, pady=10, fill="both", expand=True)
 
-        ctk.CTkLabel(scroll_frame, text="Z-Organizer", font=("Segoe UI", 24, "bold"), text_color=TEXT_MAIN).pack(anchor="w", pady=(15, 0))
+        ctk.CTkLabel(scroll_frame, text="Zarfolder", font=("Segoe UI", 24, "bold"), text_color=TEXT_MAIN).pack(anchor="w", pady=(15, 0))
         ctk.CTkLabel(scroll_frame, text=f"Version {self.version}", text_color=TEXT_MUTED, font=("Segoe UI", 13)).pack(anchor="w", pady=(0, 15))
         ctk.CTkLabel(scroll_frame, text="Developed by DanMixerBR", font=("Segoe UI", 16, "bold"), text_color=TEXT_MAIN).pack(anchor="w", pady=(0, 25))
 
@@ -526,7 +526,7 @@ class FileOrganizerApp(ctk.CTk):
         btn_frame = ctk.CTkFrame(self.about_win, fg_color="transparent")
         btn_frame.pack(pady=15)
 
-        ctk.CTkButton(btn_frame, text="GitHub", fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=BTN_HOVER, width=120, command=lambda: webbrowser.open_new("https://github.com/DanMixerBR/Z-Organizer")).pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="GitHub", fg_color=BG_INPUT, text_color=TEXT_MAIN, hover_color=BTN_HOVER, width=120, command=lambda: webbrowser.open_new("https://github.com/DanMixerBR/Zarfolder")).pack(side="left", padx=10)
         self.btn_update_app = ctk.CTkButton(btn_frame, text=LANGS[self.current_lang].get("btn_update", "Check for updates"), width=150, command=self.start_github_update, fg_color=ORANGE_MAIN, hover_color=ORANGE_HOVER)
         self.btn_update_app.pack(side="left", padx=10)
 
@@ -549,7 +549,7 @@ class FileOrganizerApp(ctk.CTk):
         threading.Thread(target=self.check_github_version_task, daemon=True).start()
 
     def check_github_version_task(self):
-        api_url = "https://api.github.com/repos/DanMixerBR/Z-Organizer/releases/latest"
+        api_url = "https://api.github.com/repos/DanMixerBR/Zarfolder/releases/latest"
         try:
             local_v = self.get_local_version()
             response = requests.get(api_url, timeout=10)
@@ -603,13 +603,13 @@ class FileOrganizerApp(ctk.CTk):
 
     def download_and_install_task(self):
         # FASE 3: O Download Robusto em Stream (Baixo uso de RAM)
-        download_url_windows = "https://github.com/DanMixerBR/Z-Organizer/releases/latest/download/Z-Organizer_Windows.zip"
-        download_url_linux = "https://github.com/DanMixerBR/Z-Organizer/releases/latest/download/Z-Organizer_Linux.zip"
+        download_url_windows = "https://github.com/DanMixerBR/Zarfolder/releases/latest/download/Zarfolder_Windows.zip"
+        download_url_linux = "https://github.com/DanMixerBR/Zarfolder/releases/latest/download/Zarfolder_Linux.zip"
         
         script_ext = "bat" if self.is_windows else "sh"
-        script_url = f"https://raw.githubusercontent.com/DanMixerBR/Z-Organizer/refs/heads/main/update.{script_ext}"
-        hash_url = "https://raw.githubusercontent.com/DanMixerBR/Z-Organizer/refs/heads/main/hash.txt"
-        zip_platform = "Z-Organizer_Windows.zip" if self.is_windows else "Z-Organizer_Linux.zip"
+        script_url = f"https://raw.githubusercontent.com/DanMixerBR/Zarfolder/refs/heads/main/update.{script_ext}"
+        hash_url = "https://raw.githubusercontent.com/DanMixerBR/Zarfolder/refs/heads/main/hash.txt"
+        zip_platform = "Zarfolder_Windows.zip" if self.is_windows else "Zarfolder_Linux.zip"
         
         dir_app = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
         script_path = os.path.join(dir_app, f"update.{script_ext}")
@@ -652,7 +652,7 @@ class FileOrganizerApp(ctk.CTk):
                                 self.safe_ui(self.update_progress.set, actual_progress)
                                 last_reported_progress = actual_progress
             
-            # Trava de Segurança Mínima: 10MB para o Z-Organizer
+            # Trava de Segurança Mínima: 10MB para o Zarfolder
             zip_size_mb = os.path.getsize(zip_path) / (1024 * 1024)
             if zip_size_mb < 10.0:
                 if os.path.exists(zip_path): os.remove(zip_path)
