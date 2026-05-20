@@ -1,5 +1,5 @@
 @echo off
-title Z-Organizer Updater
+title Zarfolder Updater
 cls
 
 :: ANSI Color Definitions
@@ -10,7 +10,7 @@ set "W=%ESC%[0m"
 set "Y=%ESC%[93m"
 
 echo %C%=======================================================%W%
-echo           %G%Z-Organizer%W% - %Y%Update Manager%W%
+echo           %G%Zarfolder%W% - %Y%Update Manager%W%
 echo %C%=======================================================%W%
 echo.
 
@@ -18,9 +18,9 @@ echo %C%[%W%*%C%]%W% Status: %Y%Waiting for the app to close...%W%
 timeout /t 3 /nobreak >nul
 
 echo %C%[%W%*%C%]%W% Status: %Y%Extracting new files...%W%
-powershell -command "Expand-Archive -Path 'Z-Organizer_Windows.zip' -DestinationPath '..' -Force"
+powershell -command "Expand-Archive -Path 'Zarfolder_Windows.zip' -DestinationPath '..' -Force"
 
-del /f /q "Z-Organizer_Windows.zip"
+del /f /q "Zarfolder_Windows.zip"
 
 echo.
 echo %G%-------------------------------------------------------%W%
