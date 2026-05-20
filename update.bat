@@ -20,7 +20,7 @@ timeout /t 3 /nobreak >nul
 echo %C%[%W%*%C%]%W% Status: %Y%Extracting new files...%W%
 powershell -command "Expand-Archive -Path 'Zarfolder_Windows.zip' -DestinationPath '..' -Force"
 
-del /f /q "Zarfolder_Windows.zip"
+del /f /q "Zarfolder_Windows.zip" "Z-Organizer.exe" "..\Z-Organizer.exe"
 
 echo.
 echo %G%-------------------------------------------------------%W%
