@@ -1,4 +1,4 @@
-name: Build Z-Organizer
+name: Build Zarfolder
 
 on:
   workflow_dispatch: 
@@ -19,11 +19,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact_name: Z-Organizer.exe
-            zip_name: Z-Organizer_Windows.zip
+            artifact_name: Zarfolder.exe
+            zip_name: Zarfolder_Windows.zip
           - os: ubuntu-latest
-            artifact_name: Z-Organizer
-            zip_name: Z-Organizer_Linux.zip
+            artifact_name: Zarfolder
+            zip_name: Zarfolder_Linux.zip
 
     steps:
       - name: Checkout Code
@@ -55,10 +55,10 @@ jobs:
           # 1. Nuitka gera o binário do app dentro da pasta main.dist
           python -m nuitka --assume-yes-for-downloads --standalone --windows-console-mode=disable `
           --enable-plugin=tk-inter --windows-icon-from-ico="assets/icon.ico" `
-          --company-name="DanMixerBR" --product-name="Z-Organizer" `
-          --file-description="Z-Organizer" --copyright="MIT License" `
+          --company-name="DanMixerBR" --product-name="Zarfolder" `
+          --file-description="Zarfolder" --copyright="MIT License" `
           --file-version="$CLEAN_V" --product-version="$CLEAN_V" `
-          --output-filename=Z-Organizer.exe main.py
+          --output-filename=Zarfolder.exe main.py
           
           # 2. Estruturar a pasta Release e a Subpasta core/bin
           New-Item -ItemType Directory -Path release\core\bin
@@ -77,9 +77,9 @@ jobs:
 
           # Compila o código C unindo o arquivo de recursos. 
           # -mwindows esconde a tela preta do CMD. -O3 aplica otimização máxima de velocidade.
-          gcc assets\launcher.c launcher.res -o release\Z-Organizer.exe -mwindows -O3
+          gcc assets\launcher.c launcher.res -o release\Zarfolder.exe -mwindows -O3
           
-          # 5. Compactar tudo: O ZIP conterá o Z-Organizer.exe (Launcher) + Pasta "core"
+          # 5. Compactar tudo: O ZIP conterá o Zarfolder.exe (Launcher) + Pasta "core"
           7z a -tzip -mx=9 ${{ matrix.zip_name }} .\release\*
 
       # --- Compilação Linux (Nuitka Standalone Puro) ---
@@ -87,7 +87,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           # 1. Nuitka gera o binário nativo Linux dentro de main.dist
-          python -m nuitka --assume-yes-for-downloads --standalone --disable-ccache --enable-plugin=tk-inter -o Z-Organizer main.py
+          python -m nuitka --assume-yes-for-downloads --standalone --disable-ccache --enable-plugin=tk-inter -o Zarfolder main.py
           
           # 2. Estruturar a pasta Release e core/bin
           mkdir -p release/core/bin
@@ -101,8 +101,8 @@ jobs:
           echo "${{ github.event.inputs.versao_tag }}" | tr -d 'A-Za-z' > release/core/bin/version.txt
           
           # 4. Adicionar o script de instalação Linux e Zipar
-          cp assets/Install_Z-Organizer.sh release/
-          chmod +x release/Install_Z-Organizer.sh
+          cp assets/Install_Zarfolder.sh release/
+          chmod +x release/Install_Zarfolder.sh
           cd release
           zip -9 -r ../${{ matrix.zip_name }} ./*
 
@@ -130,8 +130,8 @@ jobs:
 
       - name: Calculate Hashes and Update hash.txt
         run: |
-          HASH_WIN=$(sha256sum ./downloads/Z-Organizer_Windows.zip | awk '{ print $1 }')
-          HASH_LINUX=$(sha256sum ./downloads/Z-Organizer_Linux.zip | awk '{ print $1 }')
+          HASH_WIN=$(sha256sum ./downloads/Zarfolder_Windows.zip | awk '{ print $1 }')
+          HASH_LINUX=$(sha256sum ./downloads/Zarfolder_Linux.zip | awk '{ print $1 }')
           
           # Calcula o hash dos scripts de atualização nativos
           HASH_BAT=$(sha256sum update.bat | awk '{ print $1 }')
@@ -157,8 +157,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.versao_tag }}
-          name: "Z-Organizer ${{ github.event.inputs.versao_tag }}"
+          name: "Zarfolder ${{ github.event.inputs.versao_tag }}"
           files: |
-            ./downloads/Z-Organizer_Windows.zip
-            ./downloads/Z-Organizer_Linux.zip
+            ./downloads/Zarfolder_Windows.zip
+            ./downloads/Zarfolder_Linux.zip
           draft: true
