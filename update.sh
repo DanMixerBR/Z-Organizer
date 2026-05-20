@@ -20,27 +20,27 @@ Y="${ESC}[93m"
 
 clear
 echo -e "${C}=======================================================${W}"
-echo -e "          ${G}Z-Organizer${W} - ${Y}Update Manager${W}"
+echo -e "          ${G}Zarfolder${W} - ${Y}Update Manager${W}"
 echo -e "${C}=======================================================${W}"
 echo ""
 
 echo -e "${C}[${W}*${C}]${W} Status: ${Y}Extracting new files...${W}"
 
 # Extração silenciosa
-unzip -o Z-Organizer_Linux.zip -d .. > /dev/null 2>&1
+unzip -o Zarfolder_Linux.zip -d .. > /dev/null 2>&1
 
-chmod +x Z-Organizer
+chmod +x Zarfolder
 
-rm -f Z-Organizer_Linux.zip
+rm -f Zarfolder_Linux.zip
 
 echo ""
 echo -e "${G}-------------------------------------------------------${W}"
 echo "  [SUCCESS] Update completed!"
-echo "  Starting Z-Organizer..."
+echo "  Starting Zarfolder..."
 echo -e "${G}-------------------------------------------------------${W}"
 echo ""
 
-nohup ./Z-Organizer >/dev/null 2>&1 &
+nohup ./Zarfolder >/dev/null 2>&1 &
 disown
 
 sleep 2
