@@ -13,13 +13,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     
     // snprintf junta os caminhos e limita o tamanho máximo por segurança (Substitui strcpy e strcat)
     snprintf(coreDir, MAX_PATH, "%s\\core", baseDir);
-    snprintf(targetPath, MAX_PATH, "%s\\core\\Z-Organizer.exe", baseDir);
+    snprintf(targetPath, MAX_PATH, "%s\\core\\Zarfolder.exe", baseDir);
     
     // Se o arquivo existir, ele executa (Trava de Segurança Mantida!)
     if (GetFileAttributes(targetPath) != INVALID_FILE_ATTRIBUTES) {
         
         // Dispara o CMD oculto (SW_HIDE), passando o coreDir como base
-        ShellExecute(NULL, "open", "cmd.exe", "/c start \"\" \"Z-Organizer.exe\"", coreDir, SW_HIDE);
+        ShellExecute(NULL, "open", "cmd.exe", "/c start \"\" \"Zarfolder.exe\"", coreDir, SW_HIDE);
     }
     
     return 0;
