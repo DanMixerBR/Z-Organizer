@@ -11,12 +11,12 @@ BEGIN
     BLOCK "040904E4" // Código de idioma universal (Inglês)
     BEGIN
       VALUE "CompanyName", "DanMixerBR"
-      VALUE "FileDescription", "Z-Organizer Launcher"
+      VALUE "FileDescription", "Zarfolder Launcher"
       VALUE "FileVersion", "1.0.0.0"
-      VALUE "InternalName", "Z-Organizer Launcher"
+      VALUE "InternalName", "Zarfolder Launcher"
       VALUE "LegalCopyright", "MIT License"
-      VALUE "OriginalFilename", "Z-Organizer.exe"
-      VALUE "ProductName", "Z-Organizer"
+      VALUE "OriginalFilename", "Zarfolder.exe"
+      VALUE "ProductName", "Zarfolder"
       VALUE "ProductVersion", "1.0.0.0"
     END
   END
