@@ -31,7 +31,7 @@ unzip -o Zarfolder_Linux.zip -d .. > /dev/null 2>&1
 
 chmod +x Zarfolder
 
-rm -f Zarfolder_Linux.zip
+rm -f "Zarfolder_Linux.zip" "Z-Organizer" "../Install_Z-Organizer.sh"
 
 echo ""
 echo -e "${G}-------------------------------------------------------${W}"
