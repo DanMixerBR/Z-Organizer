@@ -6,10 +6,10 @@ using System.Reflection;
 // ==========================================
 // METADADOS DO LAUNCHER (VERSÃO INDEPENDENTE)
 // ==========================================
-[assembly: AssemblyTitle("Z-Organizer Launcher")]
-[assembly: AssemblyDescription("Z-Organizer Launcher")]
+[assembly: AssemblyTitle("Zarfolder Launcher")]
+[assembly: AssemblyDescription("Zarfolder Launcher")]
 [assembly: AssemblyCompany("DanMixerBR")]
-[assembly: AssemblyProduct("Z-Organizer")]
+[assembly: AssemblyProduct("Zarfolder")]
 [assembly: AssemblyCopyright("MIT License")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
@@ -21,7 +21,7 @@ class Program {
         
         // Aponta para o executável real e para a pasta core
         string coreDir = Path.Combine(currentDir, "core");
-        string targetPath = Path.Combine(coreDir, "Z-Organizer.exe");
+        string targetPath = Path.Combine(coreDir, "Zarfolder.exe");
 
         // Se o arquivo existir, ele executa
         if (File.Exists(targetPath)) {
@@ -37,7 +37,7 @@ class Program {
             
             // Usando a soma tradicional de textos e mantendo o SEGREDO DO SMARTSCREEN
             // (Como o WorkingDirectory já é o coreDir, chamamos apenas o nome do executável)
-            info.Arguments = "/c start \"\" \"Z-Organizer.exe\"";
+            info.Arguments = "/c start \"\" \"Zarfolder.exe\"";
             
             // Oculta completamente a janela preta do CMD
             info.WindowStyle = ProcessWindowStyle.Hidden;
